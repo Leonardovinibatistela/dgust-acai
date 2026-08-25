@@ -455,7 +455,7 @@ export default function Acaistore() {
       </div>
 
       {/* 2. D'GUST LOGO & PROFILE CARD */}
-      <div className="max-w-3xl mx-auto px-4 -mt-16 relative z-10">
+      <div className="max-w-5xl mx-auto px-4 -mt-16 relative z-10">
         <div className="bg-white rounded-3xl p-6 shadow-xl border border-purple-500/10 space-y-4">
           <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 sm:gap-6">
             
@@ -502,7 +502,7 @@ export default function Acaistore() {
 
       {/* 3. STICKY CATEGORIES BAR & SEARCH */}
       <div className="sticky top-0 z-30 bg-slate-50/95 backdrop-blur-md border-b border-purple-100 py-3 mt-6">
-        <div className="max-w-3xl mx-auto px-4 space-y-3">
+        <div className="max-w-5xl mx-auto px-4 space-y-3">
           
           {/* Search bar inside header */}
           <div className="relative">
@@ -545,8 +545,8 @@ export default function Acaistore() {
         </div>
       </div>
 
-      {/* 4. THE CARDÁPIO LIST - Clean delivery style rows as requested */}
-      <div className="max-w-3xl mx-auto px-4 mt-6 space-y-8">
+      {/* 4. THE CARDÁPIO GRID - bold cards, sizes & prices visible up front */}
+      <div className="max-w-5xl mx-auto px-4 mt-6 space-y-8">
         
         {loadingProducts ? (
           // Skeletons
@@ -598,8 +598,8 @@ export default function Acaistore() {
                     <span className="text-xs text-gray-400">({itemsInCat.length})</span>
                   </div>
 
-                  {/* List of horizontal rows */}
-                  <div className="space-y-3.5">
+                  {/* Grid of side-by-side product cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     {itemsInCat.map((prod) => {
                       const sizes = JSON.parse(prod.sizes);
                       const basePrice = sizes.length > 0 ? sizes[0].price : 0;
@@ -609,62 +609,78 @@ export default function Acaistore() {
                         <div
                           key={prod.id}
                           onClick={() => handleOpenCustomizer(prod)}
-                          className="bg-white rounded-2xl p-4 flex items-center justify-between gap-4 border border-gray-200/60 hover:border-[#581C5C]/30 shadow-xs hover:shadow-md transition-all cursor-pointer group"
+                          className="group relative flex flex-col bg-white rounded-3xl overflow-hidden border border-gray-200/60 hover:border-[#581C5C]/40 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
                         >
-                          {/* Item Left Info */}
-                          <div className="flex-1 space-y-1.5 min-w-0">
-                            
-                            {/* Stars rating small badge */}
-                            <div className="flex items-center space-x-1 text-amber-500 text-[10px] font-bold">
-                              <Star className="h-3 w-3 fill-current" />
-                              <span>{prod.rating}</span>
-                              <span className="text-gray-400">({prod.reviewsCount})</span>
-                              {prod.isFeatured && (
-                                <span className="bg-red-50 text-red-600 text-[9px] px-1.5 py-0.2 rounded ml-2 uppercase tracking-wide font-black">
-                                  Mais Vendido 🔥
-                                </span>
-                              )}
-                            </div>
-
-                            <h3 className="font-extrabold text-[#581C5C] text-base group-hover:text-purple-800 transition-colors">
-                              {prod.name}
-                            </h3>
-
-                            <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
-                              {prod.description}
-                            </p>
-
-                            <div className="pt-1 flex items-center space-x-2">
-                              <span className="text-base font-black text-[#F49D06]">
-                                R$ {basePrice.toFixed(2)}
-                              </span>
-                              {hasMultipleSizes && (
-                                <span className="text-[10px] text-purple-700 bg-purple-50 font-bold px-1.5 py-0.5 rounded">
-                                  {sizes.length} opções de tamanho
-                                </span>
-                              )}
-                            </div>
-
-                          </div>
-
-                          {/* Item Right Image + Float add button */}
-                          <div className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-xl bg-purple-50 flex-shrink-0 overflow-hidden shadow-inner border border-gray-100">
+                          {/* Image with name overlay */}
+                          <div className="relative h-44 sm:h-48 w-full overflow-hidden bg-gradient-to-br from-purple-100 to-orange-50 flex-shrink-0">
                             <img
                               src={prod.image}
                               alt={prod.name}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                             />
-                            
-                            {/* Float ADD button */}
-                            <div className="absolute bottom-1 right-1">
-                              <span className="bg-[#581C5C] hover:bg-[#F49D06] text-white hover:text-[#581C5C] px-2.5 py-1 rounded-lg text-[11px] font-black shadow-lg flex items-center space-x-0.5 transition-colors">
-                                <Plus className="h-3 w-3" />
-                                <span>Add</span>
-                              </span>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+
+                            {/* Rating badge */}
+                            <div className="absolute top-3 left-3 flex items-center space-x-1 bg-white/95 backdrop-blur px-2 py-1 rounded-full text-[10px] font-bold text-amber-600 shadow">
+                              <Star className="h-3 w-3 fill-current" />
+                              <span>{prod.rating}</span>
+                              <span className="text-gray-400">({prod.reviewsCount})</span>
                             </div>
 
+                            {/* Featured badge */}
+                            {prod.isFeatured && (
+                              <span className="absolute top-3 right-3 bg-[#F49D06] text-[#331135] text-[10px] px-2 py-1 rounded-full uppercase tracking-wide font-black shadow">
+                                Mais Vendido 🔥
+                              </span>
+                            )}
+
+                            {/* Product name over the image, like the reference cardápio */}
+                            <div className="absolute bottom-0 left-0 right-0 p-3.5">
+                              <h3 className="font-black text-white text-lg sm:text-xl leading-tight drop-shadow-md">
+                                {prod.name}
+                              </h3>
+                            </div>
                           </div>
 
+                          {/* Body */}
+                          <div className="flex flex-col flex-1 p-4 space-y-3">
+                            <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed min-h-[2.2em]">
+                              {prod.description}
+                            </p>
+
+                            {/* Size + price options, all visible at a glance */}
+                            {hasMultipleSizes ? (
+                              <div className="flex flex-wrap gap-1.5">
+                                {sizes.map((sz: { label: string; price: number }) => (
+                                  <span
+                                    key={sz.label}
+                                    className="text-[11px] font-bold text-[#581C5C] bg-purple-50 border border-purple-100 rounded-lg px-2 py-1 whitespace-nowrap"
+                                  >
+                                    {sz.label}{" "}
+                                    <span className="text-[#F49D06]">
+                                      R$ {sz.price.toFixed(2)}
+                                    </span>
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-lg font-black text-[#F49D06]">
+                                R$ {basePrice.toFixed(2)}
+                              </span>
+                            )}
+
+                            {/* CTA */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenCustomizer(prod);
+                              }}
+                              className="mt-auto w-full flex items-center justify-center space-x-1.5 bg-[#581C5C] group-hover:bg-[#F49D06] text-white group-hover:text-[#581C5C] font-black text-xs py-2.5 rounded-xl transition-colors shadow-md shadow-purple-900/10"
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                              <span>Adicionar</span>
+                            </button>
+                          </div>
                         </div>
                       );
                     })}
