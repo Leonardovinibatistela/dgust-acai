@@ -1,0 +1,254 @@
+"use client";
+
+import type { ReactNode } from "react";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { ArrowRight, Snowflake, Star, Timer, UtensilsCrossed } from "lucide-react";
+import { EASE } from "./Reveal";
+
+const avatars = [
+  { initials: "MS", hue: "from-violet-500 to-fuchsia-500" },
+  { initials: "RT", hue: "from-fuchsia-500 to-pink-500" },
+  { initials: "CR", hue: "from-purple-500 to-indigo-500" },
+  { initials: "JP", hue: "from-amber-400 to-orange-500" },
+];
+
+function Orbs() {
+  const reduce = useReducedMotion();
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      <motion.div
+        animate={reduce ? {} : { x: [0, 40, 0], y: [0, -30, 0] }}
+        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -left-40 top-[-10%] h-[560px] w-[560px] rounded-full bg-acai-600/25 blur-[130px]"
+      />
+      <motion.div
+        animate={reduce ? {} : { x: [0, -50, 0], y: [0, 40, 0] }}
+        transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute right-[-15%] top-[20%] h-[620px] w-[620px] rounded-full bg-fuchsia-600/20 blur-[140px]"
+      />
+      <motion.div
+        animate={reduce ? {} : { x: [0, 30, 0], y: [0, 24, 0] }}
+        transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute bottom-[-25%] left-[30%] h-[480px] w-[480px] rounded-full bg-indigo-600/20 blur-[120px]"
+      />
+    </div>
+  );
+}
+
+function RotatingRing() {
+  return (
+    <div className="pointer-events-none absolute -inset-7 animate-spin-slower sm:-inset-10" aria-hidden="true">
+      <svg viewBox="0 0 200 200" className="h-full w-full">
+        <defs>
+          <path id="dgust-circle" d="M 100,100 m -84,0 a 84,84 0 1,1 168,0 a 84,84 0 1,1 -168,0" />
+        </defs>
+        <text className="fill-cream-100/50 text-[8.2px] font-semibold uppercase" style={{ letterSpacing: "2.6px" }}>
+          <textPath href="#dgust-circle">
+            açaí 100% natural • entrega em 30 min • feito na hora •
+          </textPath>
+        </text>
+      </svg>
+    </div>
+  );
+}
+
+function FloatChip({
+  className,
+  delay = 0,
+  children,
+  label,
+}: {
+  className: string;
+  delay?: number;
+  children: ReactNode;
+  label: string;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.7, y: 16 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ delay, duration: 0.7, ease: EASE }}
+      className={`absolute z-20 ${className}`}
+    >
+      <div className="glass-strong flex animate-float items-center gap-2.5 rounded-2xl px-4 py-3 shadow-xl shadow-black/30" style={{ animationDelay: `${delay}s` }}>
+        {children}
+        <span className="text-xs font-semibold text-cream-100">{label}</span>
+      </div>
+    </motion.div>
+  );
+}
+
+export default function Hero() {
+  const reduce = useReducedMotion();
+  const { scrollY } = useScroll();
+  const yVisual = useTransform(scrollY, [0, 600], [0, reduce ? 0 : 90]);
+  const yText = useTransform(scrollY, [0, 600], [0, reduce ? 0 : -60]);
+  const fade = useTransform(scrollY, [0, 480], [1, 0.15]);
+
+  return (
+    <section id="inicio" className="relative flex min-h-screen items-center overflow-hidden pt-[72px]">
+      {/* background */}
+      <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_0%,#2a1245_0%,#1a0b2e_42%,#0b0216_100%)]" />
+      <Orbs />
+      <div className="pointer-events-none absolute inset-0 bg-noise opacity-[0.05] mix-blend-overlay" aria-hidden="true" />
+
+      <motion.div style={{ opacity: fade }} className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-24 pt-10 sm:px-8 lg:pb-16 lg:pt-16">
+        <div className="grid items-center gap-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8">
+          {/* copy */}
+          <motion.div style={{ y: yText }} className="flex flex-col items-start gap-7 text-left">
+            <motion.span
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.15, ease: EASE }}
+              className="glass inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-acai-200"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-mango-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-mango-400" />
+              </span>
+              Açaí artesanal · entrega em até 30 min
+            </motion.span>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 34 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.85, delay: 0.28, ease: EASE }}
+              className="font-display max-w-2xl text-[2.65rem] font-medium leading-[1.04] tracking-tight text-cream-50 sm:text-6xl lg:text-[4.4rem]"
+            >
+              O açaí mais{" "}
+              <em className="text-gradient not-italic sm:italic">cremoso</em> da cidade, direto na
+              sua porta.
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.42, ease: EASE }}
+              className="max-w-lg text-base leading-relaxed text-cream-100/65 sm:text-lg"
+            >
+              Frutas selecionadas, receita artesanal e aquele congelamento perfeito que só a Dgust
+              tem. Monte seu bowl do seu jeito e receba geladinho onde você estiver.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 26 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.54, ease: EASE }}
+              className="flex flex-col gap-3 sm:flex-row sm:items-center"
+            >
+              <a
+                href="#cardapio"
+                className="btn-primary group inline-flex items-center justify-center gap-2.5 rounded-full px-7 py-4 text-base font-semibold text-white"
+              >
+                Montar meu bowl
+                <ArrowRight className="h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1.5" />
+              </a>
+              <a
+                href="#combos"
+                className="group inline-flex items-center justify-center gap-2.5 rounded-full glass px-7 py-4 text-base font-semibold text-cream-100 transition-all duration-300 hover:border-acai-400/40 hover:bg-white/10"
+              >
+                <UtensilsCrossed className="h-[18px] w-[18px] text-acai-300 transition-transform duration-300 group-hover:rotate-12" />
+                Ver combos
+              </a>
+            </motion.div>
+
+            {/* social proof */}
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.68, ease: EASE }}
+              className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-3"
+            >
+              <div className="flex -space-x-3">
+                {avatars.map((a) => (
+                  <span
+                    key={a.initials}
+                    className={`flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br ${a.hue} text-[11px] font-bold text-white ring-2 ring-night-1000`}
+                  >
+                    {a.initials}
+                  </span>
+                ))}
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-night-800 text-[10px] font-bold text-acai-200 ring-2 ring-night-1000">
+                  +50k
+                </span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="flex items-center gap-1.5">
+                  <span className="flex text-mango-400">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star key={i} className="h-3.5 w-3.5 fill-current" />
+                    ))}
+                  </span>
+                  <span className="text-sm font-bold text-cream-50">4.9</span>
+                </span>
+                <span className="text-xs text-cream-100/55">mais de 50 mil pedidos entregues</span>
+              </div>
+            </motion.div>
+          </motion.div>
+
+          {/* visual */}
+          <motion.div
+            style={{ y: yVisual }}
+            initial={{ opacity: 0, scale: reduce ? 1 : 0.88, rotate: reduce ? 0 : -5 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            transition={{ duration: 1.1, delay: 0.35, ease: EASE }}
+            className="relative mx-auto w-full max-w-[420px] sm:max-w-[480px] lg:max-w-[540px]"
+          >
+            <div className="relative aspect-square">
+              {/* halo */}
+              <div className="absolute -inset-10 animate-glow-pulse rounded-full bg-[radial-gradient(circle,rgba(168,85,247,0.4),rgba(217,70,239,0.14)_45%,transparent_70%)] blur-2xl" aria-hidden="true" />
+              <RotatingRing />
+
+              <div className="ring-glow relative h-full w-full overflow-hidden rounded-full">
+                <img
+                  src="/images/hero-bowl.jpg"
+                  alt="Bowl de açaí Dgust com banana, morangos, granola e chocolate"
+                  className="h-full w-full scale-[1.06] object-cover"
+                  loading="eager"
+                />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_32%_28%,transparent_45%,rgba(11,2,22,0.55)_100%)]" />
+                <div className="absolute inset-0 rounded-full ring-1 ring-inset ring-white/15" />
+              </div>
+
+              {/* floating chips */}
+              <FloatChip className="-left-4 top-[16%] sm:-left-10" delay={1.0} label="25 min em média">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-acai-500 to-fuchsia-500 text-white">
+                  <Timer className="h-4 w-4" />
+                </span>
+              </FloatChip>
+              <FloatChip className="-right-3 top-[42%] sm:-right-8" delay={1.2} label="Sempre geladinho">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-sky-400 to-indigo-500 text-white">
+                  <Snowflake className="h-4 w-4" />
+                </span>
+              </FloatChip>
+              <FloatChip className="bottom-[10%] left-[8%]" delay={1.4} label="4.9 · 12 mil avaliações">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-mango-400 to-orange-500 text-white">
+                  <Star className="h-4 w-4 fill-current" />
+                </span>
+              </FloatChip>
+            </div>
+          </motion.div>
+        </div>
+      </motion.div>
+
+      {/* scroll cue */}
+      <motion.a
+        href="#porque"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.6, duration: 1 }}
+        className="absolute bottom-7 left-1/2 z-10 hidden -translate-x-1/2 flex-col items-center gap-2.5 text-cream-100/40 transition-colors hover:text-acai-300 md:flex"
+        aria-label="Rolar para a próxima seção"
+      >
+        <span className="text-[10px] font-bold uppercase tracking-[0.3em]">descubra</span>
+        <span className="flex h-9 w-[22px] items-start justify-center rounded-full border border-current p-1.5">
+          <motion.span
+            animate={reduce ? {} : { y: [0, 9, 0], opacity: [1, 0.2, 1] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+            className="h-1.5 w-1.5 rounded-full bg-current"
+          />
+        </span>
+      </motion.a>
+    </section>
+  );
+}

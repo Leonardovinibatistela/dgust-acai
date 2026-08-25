@@ -7,9 +7,23 @@ import {
   ChevronRight, Menu, Check, ShoppingCart, Info, MessageSquare, Award,
   Clock, Motorbike, AlertCircle, Share2, Compass, Trash2, CheckCircle
 } from "lucide-react";
-import { 
-  getProducts, getProductById, createReview, createOrder 
+import {
+  getProducts, getProductById, createReview, createOrder
 } from "../app/actions";
+import Navbar from "./Navbar";
+import Hero from "./Hero";
+import Marquee from "./Marquee";
+import Features from "./Features";
+import ProductShowcase from "./ProductShowcase";
+import Benefits from "./Benefits";
+import Testimonials from "./Testimonials";
+import Pricing from "./Pricing";
+import FAQ from "./FAQ";
+import CTA from "./CTA";
+import Footer from "./Footer";
+import { SectionHeading } from "./Reveal";
+
+const WHATSAPP_NUMBER = "5511999999999";
 
 interface Product {
   id: string;
@@ -99,6 +113,7 @@ export default function Acaistore() {
   // Navigation & Category filter
   const [activeCategory, setActiveCategory] = useState("todos");
   const [productsList, setProductsList] = useState<Product[]>([]);
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("rating");
@@ -163,6 +178,29 @@ export default function Acaistore() {
     }
     load();
   }, [activeCategory, sortBy, search]);
+
+  // Fetch a fixed set of featured products for the landing showcase
+  // (kept independent of the category/search filters used by the full grid below)
+  useEffect(() => {
+    async function loadFeatured() {
+      const res = await getProducts("todos", "rating", "");
+      if (res.success && res.products) {
+        setFeaturedProducts((res.products as Product[]).filter(p => p.isFeatured).slice(0, 4));
+      }
+    }
+    loadFeatured();
+  }, []);
+
+  const categoryLabelMap = Object.fromEntries(categories.map(c => [c.id, c.label]));
+
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  const handleComboOrder = (comboName: string) => {
+    const msg = `Olá! Quero pedir o *${comboName}* 🍇 do Dgust Açaí.`;
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
+  };
+
+  const faqWhatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent("Olá! Tenho uma dúvida sobre o Dgust Açaí.")}`;
 
   // Read cart
   useEffect(() => {
@@ -424,7 +462,7 @@ export default function Acaistore() {
 
     const encoded = encodeURIComponent(msg);
     // WhatsApp redirect link
-    window.open(`https://wa.me/5511999999999?text=${encoded}`, "_blank");
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`, "_blank");
 
     // Clear cart and close modals
     saveCart([]);
@@ -433,77 +471,40 @@ export default function Acaistore() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-[#2D0B2E] font-sans antialiased pb-24 selection:bg-[#581C5C] selection:text-white">
-      
-      {/* 1. TOP BRAND COVER HEADER - OlaClick/iFood Inspired */}
-      <div className="relative h-44 sm:h-56 bg-purple-950 overflow-hidden">
-        {/* Colorful Abstract Açaí Background details */}
-        <div className="absolute inset-0 bg-[url('https://images.pexels.com/photos/9102652/pexels-photo-9102652.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940')] bg-cover bg-center opacity-45 mix-blend-overlay"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-purple-950/70 to-transparent"></div>
-        
-        {/* Quick Badge buttons inside cover */}
-        <div className="absolute top-4 right-4 flex items-center space-x-2">
-          <span className="bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center space-x-1 shadow-lg">
-            <span className="h-2 w-2 rounded-full bg-white animate-ping mr-1"></span>
-            Aberto
-          </span>
-          <span className="bg-[#F49D06] text-[#331135] text-xs font-black px-3 py-1 rounded-full shadow-lg flex items-center space-x-1">
-            <Clock className="h-3 w-3" />
-            <span>25-45m</span>
-          </span>
-        </div>
-      </div>
+    <div className="relative min-h-screen overflow-x-clip bg-night-1000 font-sans text-cream-100 antialiased selection:bg-acai-500 selection:text-white">
+      <Navbar cartCount={cartCount} onCartClick={() => setIsCartOpen(true)} />
 
-      {/* 2. D'GUST LOGO & PROFILE CARD */}
-      <div className="max-w-5xl mx-auto px-4 -mt-16 relative z-10">
-        <div className="bg-white rounded-3xl p-6 shadow-xl border border-purple-500/10 space-y-4">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 sm:gap-6">
-            
-            {/* Logo Avatar */}
-            <div className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl bg-gradient-to-br from-[#581C5C] to-[#F49D06] p-1.5 shadow-2xl flex-shrink-0 -mt-16 sm:-mt-20">
-              <div className="bg-[#581C5C] h-full w-full rounded-xl flex items-center justify-center text-white font-black text-3xl sm:text-4xl tracking-tighter border-2 border-white/20">
-                D'G
-              </div>
-            </div>
+      <Hero />
+      <Marquee />
+      <Features />
+      <ProductShowcase
+        products={featuredProducts}
+        categoryLabels={categoryLabelMap}
+        onAdd={handleOpenCustomizer}
+      />
+      <Benefits />
+      <Testimonials />
 
-            {/* Profile Info */}
-            <div className="flex-1 space-y-1">
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                <h1 className="text-3xl font-black text-[#581C5C] tracking-tight">D'Gust Açaí</h1>
-                <span className="bg-purple-100 text-[#581C5C] text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center">
-                  <Award className="h-3 w-3 mr-1 text-purple-700" /> Oficial
-                </span>
-              </div>
-              <p className="text-xs text-gray-500">
-                Açaí cremoso de alta qualidade para todas as idades. Monte o seu com mais de 25 acompanhamentos grátis e caldas gourmet!
-              </p>
+      {/* CARDÁPIO COMPLETO - full catalog, real products from the database */}
+      <section id="cardapio-completo" className="relative py-20 sm:py-28">
+        <div className="pointer-events-none absolute left-1/2 top-0 h-px w-[min(72rem,90%)] -translate-x-1/2 bg-gradient-to-r from-transparent via-acai-500/30 to-transparent" />
+        <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
+          <SectionHeading
+            eyebrow="Cardápio completo"
+            title={
+              <>
+                Todas as <span className="text-gradient italic">categorias</span> em um só lugar
+              </>
+            }
+            description="Filtre por categoria ou pesquise pelo nome do seu açaí favorito."
+          />
 
-              {/* Badges strip */}
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 pt-2 text-xs text-gray-600 font-medium">
-                <span className="flex items-center text-amber-500">
-                  <Star className="h-4 w-4 fill-current mr-1" />
-                  <span className="font-bold text-[#2D0B2E]">4.9</span>
-                  <span className="text-gray-400 ml-1">(120+ avaliações)</span>
-                </span>
-                <span className="flex items-center">
-                  <Truck className="h-4 w-4 text-purple-700 mr-1" />
-                  <span>Entrega R$ 5,00 ou grátis &gt; R$ 50</span>
-                </span>
-                <span className="flex items-center">
-                  <MapPin className="h-4 w-4 text-red-500 mr-1" />
-                  <span>Jardim das Oliveiras, SP</span>
-                </span>
-              </div>
-            </div>
+          <div className="mt-12 rounded-[2.5rem] bg-cream-50 p-4 shadow-2xl shadow-black/40 sm:p-7 text-[#2D0B2E]">
 
-          </div>
-        </div>
-      </div>
+      {/* STICKY CATEGORIES BAR & SEARCH */}
+      <div className="sticky top-[76px] z-30 bg-cream-50/95 backdrop-blur-md border-b border-purple-100 py-3 rounded-t-[2rem]">
+        <div className="space-y-3">
 
-      {/* 3. STICKY CATEGORIES BAR & SEARCH */}
-      <div className="sticky top-0 z-30 bg-slate-50/95 backdrop-blur-md border-b border-purple-100 py-3 mt-6">
-        <div className="max-w-5xl mx-auto px-4 space-y-3">
-          
           {/* Search bar inside header */}
           <div className="relative">
             <input
@@ -515,7 +516,7 @@ export default function Acaistore() {
             />
             <Search className="absolute left-4 top-3.5 h-4 w-4 text-gray-400" />
             {search && (
-              <button 
+              <button
                 onClick={() => setSearch("")}
                 className="absolute right-4 top-3 text-gray-400 hover:text-red-500"
               >
@@ -545,9 +546,9 @@ export default function Acaistore() {
         </div>
       </div>
 
-      {/* 4. THE CARDÁPIO GRID - bold cards, sizes & prices visible up front */}
-      <div className="max-w-5xl mx-auto px-4 mt-6 space-y-8">
-        
+      {/* THE CARDÁPIO GRID - bold cards, sizes & prices visible up front */}
+      <div className="px-1 pt-6 space-y-8">
+
         {loadingProducts ? (
           // Skeletons
           <div className="space-y-4">
@@ -693,6 +694,14 @@ export default function Acaistore() {
         )}
 
       </div>
+
+          </div>
+        </div>
+      </section>
+
+      <Pricing onOrder={handleComboOrder} />
+      <FAQ whatsappUrl={faqWhatsappUrl} />
+      <CTA />
 
       {/* 5. GORGEOUS DIGITAL CUSTOMIZER MODAL */}
       {isCustomizerOpen && selectedProduct && (
@@ -1321,32 +1330,7 @@ export default function Acaistore() {
         </div>
       )}
 
-      {/* 9. BOTTOM DESCRIPTIVE INFO & CREDIT */}
-      <footer className="bg-[#331135] text-purple-100 mt-16 py-12 border-t-4 border-[#F49D06]">
-        <div className="max-w-3xl mx-auto px-4 text-center space-y-6 text-xs">
-          
-          <h2 className="text-xl font-black tracking-tight text-white flex items-center justify-center">
-            D'Gust <span className="text-[#F49D06] ml-2">Açaí</span>
-          </h2>
-          
-          <p className="leading-relaxed text-purple-200">
-            A sua parada favorita para saborear o açaí mais incrível e cremoso! Feito do seu jeito, para todas as idades, com ingredientes selecionados e muito amor. 
-          </p>
-
-          <div className="bg-[#240626] p-4 rounded-2xl border border-purple-900 flex flex-col sm:flex-row items-center justify-center gap-4 text-xs font-semibold text-yellow-300">
-            <span>🕒 Ter a Dom: 13:00 às 22:30</span>
-            <span className="hidden sm:inline">•</span>
-            <span>📍 Av. Principal do Açaí, 500, SP</span>
-            <span className="hidden sm:inline">•</span>
-            <span>📞 (11) 99999-9999</span>
-          </div>
-
-          <p className="text-purple-400 text-[10px] pt-4">
-            © {new Date().getFullYear()} D'Gust Açaí. Desenvolvido com carinho para os amantes de Açaí. Todos os direitos reservados.
-          </p>
-
-        </div>
-      </footer>
+      <Footer phone="(11) 99999-9999" address="Av. Principal do Açaí, 500, SP" hours="Ter a Dom: 13:00 às 22:30" />
 
     </div>
   );
