@@ -110,7 +110,7 @@ export default function Benefits() {
 
           <Reveal delay={0.15} className="mt-8 pl-4">
             <a
-              href="#combos"
+              href="#cardapio-completo"
               className="group inline-flex items-center gap-2 text-sm font-semibold text-acai-300 transition-colors hover:text-cream-50"
             >
               Quero experimentar

@@ -65,65 +65,6 @@ export const products: Product[] = [
   },
 ];
 
-export type Combo = {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  oldPrice: number;
-  popular?: boolean;
-  features: string[];
-  cta: string;
-};
-
-export const combos: Combo[] = [
-  {
-    id: "solo",
-    name: "Combo Solteiro",
-    description: "Perfeito para matar a vontade com estilo.",
-    price: 24.9,
-    oldPrice: 29.9,
-    features: [
-      "1 açaí de 500ml à sua escolha",
-      "1 topping extra grátis",
-      "Entrega padrão",
-      "Pedido no app ou WhatsApp",
-    ],
-    cta: "Pedir combo solo",
-  },
-  {
-    id: "dupla",
-    name: "Combo Dupla",
-    description: "Para dividir (ou não) com quem você ama.",
-    price: 44.9,
-    oldPrice: 55.8,
-    popular: true,
-    features: [
-      "2 açaís de 500ml à escolha",
-      "2 toppings extras grátis",
-      "Entrega expressa grátis",
-      "Embalagem térmica premium",
-    ],
-    cta: "Pedir combo dupla",
-  },
-  {
-    id: "familia",
-    name: "Combo Família",
-    description: "A sobremesa oficial das noites em casa.",
-    price: 79.9,
-    oldPrice: 99.6,
-    features: [
-      "4 açaís de 500ml à escolha",
-      "4 toppings extras grátis",
-      "Entrega expressa grátis",
-      "Embalagem térmica premium",
-      "Colheres e guardanapos inclusos",
-      "Prioridade na fila de entrega",
-    ],
-    cta: "Pedir combo família",
-  },
-];
-
 export type Testimonial = {
   name: string;
   initials: string;

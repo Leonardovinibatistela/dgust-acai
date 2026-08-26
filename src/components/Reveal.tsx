@@ -10,17 +10,20 @@ type RevealProps = {
   delay?: number;
   y?: number;
   className?: string;
-  once?: boolean;
 };
 
-export function Reveal({ children, delay = 0, y = 32, className, once = true }: RevealProps) {
+// Note: this animates in on mount rather than on scroll-into-view. Scroll-triggered
+// (whileInView) reveals depend on IntersectionObserver timing that, combined with
+// prefers-reduced-motion's async detection, could leave content stuck at opacity:0
+// forever on some devices. Animating on mount guarantees content always becomes
+// visible, at the small cost of not staggering in as you scroll down the page.
+export function Reveal({ children, delay = 0, y = 32, className }: RevealProps) {
   const reduce = useReducedMotion();
   return (
     <motion.div
       className={className}
       initial={{ opacity: 0, y: reduce ? 0 : y }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once, margin: "-70px" }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.75, delay, ease: EASE }}
     >
       {children}
@@ -45,21 +48,14 @@ export const staggerChild: Variants = {
 export function StaggerGroup({
   children,
   className,
-  amount = 0.2,
 }: {
   children: ReactNode;
   className?: string;
+  /** @deprecated no longer used — see the comment on Reveal above */
   amount?: number;
 }) {
-  const reduce = useReducedMotion();
   return (
-    <motion.div
-      className={className}
-      variants={staggerParent}
-      initial={reduce ? false : "hidden"}
-      whileInView="show"
-      viewport={{ once: true, amount }}
-    >
+    <motion.div className={className} variants={staggerParent} initial="hidden" animate="show">
       {children}
     </motion.div>
   );
@@ -74,8 +70,6 @@ export function StaggerItem({
   className?: string;
   delay?: number;
 }) {
-  const reduce = useReducedMotion();
-  if (reduce) return <div className={className}>{children}</div>;
   return (
     <motion.div className={className} variants={staggerChild} custom={delay}>
       {children}

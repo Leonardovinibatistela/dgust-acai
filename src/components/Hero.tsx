@@ -137,11 +137,11 @@ export default function Hero() {
                 <ArrowRight className="h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1.5" />
               </a>
               <a
-                href="#combos"
+                href="#cardapio-completo"
                 className="group inline-flex items-center justify-center gap-2.5 rounded-full glass px-7 py-4 text-base font-semibold text-cream-100 transition-all duration-300 hover:border-acai-400/40 hover:bg-white/10"
               >
                 <UtensilsCrossed className="h-[18px] w-[18px] text-acai-300 transition-transform duration-300 group-hover:rotate-12" />
-                Ver combos
+                Ver cardápio completo
               </a>
             </motion.div>
           </motion.div>
@@ -171,12 +171,12 @@ export default function Hero() {
               </div>
 
               {/* floating chips */}
-              <FloatChip className="-left-4 top-[16%] sm:-left-10" delay={1.0} label="25 min em média">
+              <FloatChip className="hidden sm:block sm:-left-10 top-[16%]" delay={1.0} label="25 min em média">
                 <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-acai-500 to-fuchsia-500 text-white">
                   <Timer className="h-4 w-4" />
                 </span>
               </FloatChip>
-              <FloatChip className="-right-3 top-[42%] sm:-right-8" delay={1.2} label="Sempre geladinho">
+              <FloatChip className="hidden sm:block sm:-right-8 top-[42%]" delay={1.2} label="Sempre geladinho">
                 <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-sky-400 to-indigo-500 text-white">
                   <Snowflake className="h-4 w-4" />
                 </span>

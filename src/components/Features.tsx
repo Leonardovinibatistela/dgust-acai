@@ -1,6 +1,6 @@
 "use client";
 
-import { ChefHat, Leaf, SlidersHorizontal, Timer } from "lucide-react";
+import { Leaf, SlidersHorizontal, Timer } from "lucide-react";
 import { SectionHeading, StaggerGroup, StaggerItem } from "./Reveal";
 
 const features = [
@@ -25,13 +25,6 @@ const features = [
       "Escolha o tamanho, a base e até 5 toppings entre frutas, crocantes e cremes. Cada açaí sai montado na hora, do seu jeitinho.",
     accent: "from-fuchsia-500 to-pink-500",
   },
-  {
-    icon: ChefHat,
-    title: "Receita de apaixonados",
-    description:
-      "Três anos de testes até a cremosidade perfeita: nem gelo demais, nem doce demais. Só o equilíbrio que virou obsessão.",
-    accent: "from-mango-400 to-orange-500",
-  },
 ];
 
 export default function Features() {
@@ -50,7 +43,7 @@ export default function Features() {
           description="Do primeiro clique à última colherada, cada etapa foi desenhada para a sua sobremesa chegar perfeita."
         />
 
-        <StaggerGroup className="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <StaggerGroup className="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((f, i) => (
             <StaggerItem key={f.title}>
               <article className="card-hover group glass relative h-full overflow-hidden rounded-3xl p-7">

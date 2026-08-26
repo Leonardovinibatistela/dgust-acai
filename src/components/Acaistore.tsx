@@ -16,7 +16,6 @@ import Marquee from "./Marquee";
 import Features from "./Features";
 import ProductShowcase from "./ProductShowcase";
 import Benefits from "./Benefits";
-import Pricing from "./Pricing";
 import FAQ from "./FAQ";
 import CTA from "./CTA";
 import Footer from "./Footer";
@@ -304,11 +303,6 @@ export default function Acaistore() {
   const categoryLabelMap = Object.fromEntries(categories.map(c => [c.id, c.label]));
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-
-  const handleComboOrder = (comboName: string) => {
-    const msg = `Olá! Quero pedir o *${comboName}* 🍇 do Dgust Açaí.`;
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
-  };
 
   const faqWhatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent("Olá! Tenho uma dúvida sobre o Dgust Açaí.")}`;
 
@@ -732,7 +726,6 @@ export default function Acaistore() {
         </div>
       </section>
 
-      <Pricing onOrder={handleComboOrder} />
       <FAQ whatsappUrl={faqWhatsappUrl} />
       <CTA />
 
@@ -1139,7 +1132,7 @@ export default function Acaistore() {
                     placeholder="Como podemos te chamar?"
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#581C5C] text-xs bg-white focus:outline-none"
+                    className="w-full p-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#581C5C] text-xs bg-white text-[#2D0B2E] placeholder:text-gray-400 focus:outline-none"
                   />
                 </div>
                 <div>
@@ -1150,7 +1143,7 @@ export default function Acaistore() {
                     placeholder="(66) 9..."
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#581C5C] text-xs bg-white focus:outline-none"
+                    className="w-full p-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#581C5C] text-xs bg-white text-[#2D0B2E] placeholder:text-gray-400 focus:outline-none"
                   />
                 </div>
               </div>
@@ -1209,7 +1202,7 @@ export default function Acaistore() {
                       placeholder="Rua, número e complemento"
                       value={customerAddress}
                       onChange={(e) => setCustomerAddress(e.target.value)}
-                      className="w-full p-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#581C5C] text-xs bg-white focus:outline-none"
+                      className="w-full p-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#581C5C] text-xs bg-white text-[#2D0B2E] placeholder:text-gray-400 focus:outline-none"
                     />
                     <input
                       type="text"
@@ -1217,7 +1210,7 @@ export default function Acaistore() {
                       placeholder="Bairro / Cidade"
                       value={customerCity}
                       onChange={(e) => setCustomerCity(e.target.value)}
-                      className="w-full p-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#581C5C] text-xs bg-white focus:outline-none"
+                      className="w-full p-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#581C5C] text-xs bg-white text-[#2D0B2E] placeholder:text-gray-400 focus:outline-none"
                     />
                   </div>
                 )}
@@ -1288,7 +1281,7 @@ export default function Acaistore() {
                       placeholder="Precisa de troco para quanto?"
                       value={changeFor}
                       onChange={(e) => setChangeFor(e.target.value)}
-                      className="w-full sm:w-56 p-2.5 rounded-xl border border-gray-200 text-xs bg-white focus:outline-none"
+                      className="w-full sm:w-56 p-2.5 rounded-xl border border-gray-200 text-xs bg-white text-[#2D0B2E] placeholder:text-gray-400 focus:outline-none"
                     />
                   </div>
                 )}
