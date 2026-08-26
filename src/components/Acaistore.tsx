@@ -16,14 +16,13 @@ import Marquee from "./Marquee";
 import Features from "./Features";
 import ProductShowcase from "./ProductShowcase";
 import Benefits from "./Benefits";
-import Testimonials from "./Testimonials";
 import Pricing from "./Pricing";
 import FAQ from "./FAQ";
 import CTA from "./CTA";
 import Footer from "./Footer";
 import { SectionHeading } from "./Reveal";
 
-const WHATSAPP_NUMBER = "5511999999999";
+const WHATSAPP_NUMBER = "5566996605529";
 
 interface Product {
   id: string;
@@ -264,8 +263,8 @@ export default function Acaistore() {
   const categories = [
     { id: "todos", label: "Tudo", emoji: "✨" },
     { id: "premium", label: "Açaí Premium", emoji: "🏆" },
-    { id: "garrafa", label: "Na Garrafa", emoji: "🍼" },
-    { id: "tradicional", label: "Tradicional", emoji: "🥣" },
+    { id: "garrafa", label: "Na Garrafa", emoji: "🥤" },
+    { id: "tradicional", label: "Monte seu Açaí", emoji: "🥣" },
     { id: "barca_marmita", label: "Barcas & Marmitas", emoji: "🛶" },
     { id: "sobremesa", label: "Sobremesas", emoji: "🍓" }
   ];
@@ -587,7 +586,6 @@ export default function Acaistore() {
         onAdd={handleOpenCustomizer}
       />
       <Benefits />
-      <Testimonials />
 
       {/* CARDÁPIO COMPLETO - full catalog, real products from the database */}
       <section id="cardapio-completo" className="relative py-20 sm:py-28">
@@ -1353,7 +1351,11 @@ export default function Acaistore() {
         </div>
       )}
 
-      <Footer phone="(11) 99999-9999" address="Av. Principal do Açaí, 500, SP" hours="Ter a Dom: 13:00 às 22:30" />
+      <Footer
+        phone="(66) 99660-5529"
+        address="Rua 2, Matupá - MT, 78525-000"
+        hours="Terça a domingo: 13:30–22:00 · Segunda: 13:30–18:30"
+      />
 
     </div>
   );

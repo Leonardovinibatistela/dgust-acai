@@ -44,7 +44,6 @@ const columns = [
     title: "A Dgust",
     links: [
       { label: "Por que Dgust", href: "#porque" },
-      { label: "Avaliações", href: "#avaliacoes" },
       { label: "Dúvidas frequentes", href: "#faq" },
     ],
   },

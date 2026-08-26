@@ -85,7 +85,7 @@ export default function CTA() {
             </span>
             <span className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-acai-300" />
-              Todos os dias, 10h às 23h
+              Terça a domingo, 13:30–22:00
             </span>
           </div>
         </Reveal>

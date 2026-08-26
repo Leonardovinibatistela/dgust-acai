@@ -1,10 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { animate, useInView } from "framer-motion";
 import { ChefHat, Leaf, SlidersHorizontal, Timer } from "lucide-react";
-import { Reveal, SectionHeading, StaggerGroup, StaggerItem } from "./Reveal";
-import { stats } from "../data/content";
+import { SectionHeading, StaggerGroup, StaggerItem } from "./Reveal";
 
 const features = [
   {
@@ -36,37 +33,6 @@ const features = [
     accent: "from-mango-400 to-orange-500",
   },
 ];
-
-function CountUp({
-  value,
-  suffix,
-  decimals = 0,
-}: {
-  value: number;
-  suffix: string;
-  decimals?: number;
-}) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-60px" });
-  const [display, setDisplay] = useState("0");
-
-  useEffect(() => {
-    if (!inView) return;
-    const controls = animate(0, value, {
-      duration: 2,
-      ease: [0.21, 0.65, 0.35, 1],
-      onUpdate: (v) => setDisplay(v.toFixed(decimals)),
-    });
-    return () => controls.stop();
-  }, [inView, value, decimals]);
-
-  return (
-    <span ref={ref}>
-      {display}
-      {suffix}
-    </span>
-  );
-}
 
 export default function Features() {
   return (
@@ -104,27 +70,6 @@ export default function Features() {
             </StaggerItem>
           ))}
         </StaggerGroup>
-
-        {/* stats strip */}
-        <Reveal delay={0.1} className="mt-14">
-          <div className="glass grid grid-cols-2 gap-y-10 rounded-[2rem] px-6 py-10 sm:px-10 lg:grid-cols-4">
-            {stats.map((s, i) => (
-              <div
-                key={s.label}
-                className={`flex flex-col items-center gap-1.5 text-center ${
-                  i > 0 ? "lg:border-l lg:border-white/8" : ""
-                }`}
-              >
-                <span className="font-display text-4xl font-semibold tracking-tight text-gradient sm:text-5xl">
-                  <CountUp value={s.value} suffix={s.suffix} decimals={s.decimals ?? 0} />
-                </span>
-                <span className="text-xs font-semibold uppercase tracking-[0.2em] text-cream-100/50">
-                  {s.label}
-                </span>
-              </div>
-            ))}
-          </div>
-        </Reveal>
       </div>
     </section>
   );
