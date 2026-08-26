@@ -366,12 +366,10 @@ export default function Acaistore() {
     } else if (selectedProduct.category === "tradicional") {
       freeList = TOPPINGS_FREE_TRADICIONAL;
       paidList = TOPPINGS_PAID_TRADICIONAL;
-    } else if (selectedProduct.category === "barca_marmita") {
-      freeList = TOPPINGS_FREE_TRADICIONAL;
-      paidList = TOPPINGS_PAID_TRADICIONAL;
     } else {
+      // Premium, Barcas & Marmitas e Sobremesas já vêm montados — sem adicionais.
       freeList = [];
-      paidList = TOPPINGS_PAID_TRADICIONAL;
+      paidList = [];
       limit = 0;
     }
     

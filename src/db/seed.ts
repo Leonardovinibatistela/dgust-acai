@@ -84,7 +84,7 @@ export const PRODUCT_DATA = [
     name: "Açaí Brownie Supreme",
     description: "Açaí cremoso, creme de ninho artesanal, generosos pedaços de brownie e morangos frescos picados na hora. Uma combinação campeã!",
     category: "premium",
-    image: "https://images.pexels.com/photos/6441084/pexels-photo-6441084.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200",
+    image: "/images/acai-brownie-supreme.jpg",
     sizes: JSON.stringify([
       { label: "300ML", price: 27.00 },
       { label: "500ML", price: 37.00 },
@@ -100,7 +100,7 @@ export const PRODUCT_DATA = [
     name: "Açaí Belga Trufado",
     description: "Açaí cremoso intercalado com creme de chocolate belga artesanal, pedaços de Brownie crocante e morangos frescos. Puro pecado gastronômico!",
     category: "premium",
-    image: "https://images.pexels.com/photos/3028139/pexels-photo-3028139.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=1200&w=800",
+    image: "/images/acai-belga-trufado.jpg",
     sizes: JSON.stringify([
       { label: "300ML", price: 29.00 },
       { label: "500ML", price: 39.00 },
@@ -116,7 +116,7 @@ export const PRODUCT_DATA = [
     name: "Açaí Ninho c/ Nutella",
     description: "O queridinho do cardápio: o delicioso açaí D'Gust com o cremoso creme de ninho da casa e muita Nutella genuína, equilibrado com o sabor cítrico dos morangos frescos.",
     category: "premium",
-    image: "https://images.pexels.com/photos/9024838/pexels-photo-9024838.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    image: "/images/acai-ninho-nutella.jpg",
     sizes: JSON.stringify([
       { label: "300ML", price: 32.00 },
       { label: "500ML", price: 40.00 },
@@ -132,7 +132,7 @@ export const PRODUCT_DATA = [
     name: "Açaí 2 Amores",
     description: "Açaí cremoso com camadas generosas de creme branco e creme de chocolate belga, finamente finalizado com gotas de chocolate crocantes.",
     category: "premium",
-    image: "https://images.pexels.com/photos/3035261/pexels-photo-3035261.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    image: "/images/acai-2-amores.jpg",
     sizes: JSON.stringify([
       { label: "300ML", price: 26.00 },
       { label: "500ML", price: 34.00 },
