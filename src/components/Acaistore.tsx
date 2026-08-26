@@ -286,7 +286,9 @@ export default function Acaistore() {
   // (kept independent of the category/search filters used by the full grid below)
   useEffect(() => {
     async function loadFeatured() {
-      const res = await getProducts("todos", "rating", "");
+      // Vitrine mostra só Açaí Premium, pra bater com a categoria do cardápio completo
+      // (evita misturar com Barcas/Marmitas, Tradicional etc.)
+      const res = await getProducts("premium", "rating", "");
       if (res.success && res.products) {
         setFeaturedProducts((res.products as Product[]).filter(p => p.isFeatured).slice(0, 4));
       }
