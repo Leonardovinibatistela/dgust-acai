@@ -3,7 +3,6 @@
 import type { ReactNode } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, Snowflake, Timer, UtensilsCrossed } from "lucide-react";
-import { EASE } from "./Reveal";
 
 function Orbs() {
   const reduce = useReducedMotion();
@@ -57,17 +56,12 @@ function FloatChip({
   label: string;
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.7, y: 16 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{ delay, duration: 0.7, ease: EASE }}
-      className={`absolute z-20 ${className}`}
-    >
+    <div className={`reveal-in absolute z-20 ${className}`} style={{ animationDelay: `${delay}s` }}>
       <div className="glass-strong flex animate-float items-center gap-2.5 rounded-2xl px-4 py-3 shadow-xl shadow-black/30" style={{ animationDelay: `${delay}s` }}>
         {children}
         <span className="text-xs font-semibold text-cream-100">{label}</span>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -89,45 +83,37 @@ export default function Hero() {
         <div className="grid items-center gap-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8">
           {/* copy */}
           <motion.div style={{ y: yText }} className="flex flex-col items-start gap-7 text-left">
-            <motion.span
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.15, ease: EASE }}
-              className="glass inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-acai-200"
+            <span
+              className="reveal-in glass inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-acai-200"
+              style={{ animationDelay: "0.1s" }}
             >
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-mango-400 opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-mango-400" />
               </span>
               Açaí artesanal · entrega em até 30 min
-            </motion.span>
+            </span>
 
-            <motion.h1
-              initial={{ opacity: 0, y: 34 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.85, delay: 0.28, ease: EASE }}
-              className="font-display max-w-2xl text-[2.65rem] font-medium leading-[1.04] tracking-tight text-cream-50 sm:text-6xl lg:text-[4.4rem]"
+            <h1
+              className="reveal-in font-display max-w-2xl text-[2.65rem] font-medium leading-[1.04] tracking-tight text-cream-50 sm:text-6xl lg:text-[4.4rem]"
+              style={{ animationDelay: "0.2s" }}
             >
               O açaí mais{" "}
               <em className="text-gradient not-italic sm:italic">cremoso</em> da cidade, direto na
               sua porta.
-            </motion.h1>
+            </h1>
 
-            <motion.p
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.42, ease: EASE }}
-              className="max-w-lg text-base leading-relaxed text-cream-100/65 sm:text-lg"
+            <p
+              className="reveal-in max-w-lg text-base leading-relaxed text-cream-100/65 sm:text-lg"
+              style={{ animationDelay: "0.3s" }}
             >
               Frutas selecionadas, receita artesanal e aquele congelamento perfeito que só a Dgust
               tem. Monte seu açaí do seu jeito e receba geladinho onde você estiver.
-            </motion.p>
+            </p>
 
-            <motion.div
-              initial={{ opacity: 0, y: 26 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.54, ease: EASE }}
-              className="flex flex-col gap-3 sm:flex-row sm:items-center"
+            <div
+              className="reveal-in flex flex-col gap-3 sm:flex-row sm:items-center"
+              style={{ animationDelay: "0.4s" }}
             >
               <a
                 href="#cardapio"
@@ -143,16 +129,13 @@ export default function Hero() {
                 <UtensilsCrossed className="h-[18px] w-[18px] text-acai-300 transition-transform duration-300 group-hover:rotate-12" />
                 Ver cardápio completo
               </a>
-            </motion.div>
+            </div>
           </motion.div>
 
           {/* visual */}
           <motion.div
             style={{ y: yVisual }}
-            initial={{ opacity: 0, scale: reduce ? 1 : 0.88, rotate: reduce ? 0 : -5 }}
-            animate={{ opacity: 1, scale: 1, rotate: 0 }}
-            transition={{ duration: 1.1, delay: 0.35, ease: EASE }}
-            className="relative mx-auto w-full max-w-[420px] sm:max-w-[480px] lg:max-w-[540px]"
+            className="reveal-in-fade relative mx-auto w-full max-w-[420px] sm:max-w-[480px] lg:max-w-[540px]"
           >
             <div className="relative aspect-square">
               {/* halo */}
@@ -187,12 +170,10 @@ export default function Hero() {
       </motion.div>
 
       {/* scroll cue */}
-      <motion.a
+      <a
         href="#porque"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.6, duration: 1 }}
-        className="absolute bottom-7 left-1/2 z-10 hidden -translate-x-1/2 flex-col items-center gap-2.5 text-cream-100/40 transition-colors hover:text-acai-300 md:flex"
+        className="reveal-in-fade absolute bottom-7 left-1/2 z-10 hidden -translate-x-1/2 flex-col items-center gap-2.5 text-cream-100/40 transition-colors hover:text-acai-300 md:flex"
+        style={{ animationDelay: "1s" }}
         aria-label="Rolar para a próxima seção"
       >
         <span className="text-[10px] font-bold uppercase tracking-[0.3em]">descubra</span>
@@ -203,7 +184,7 @@ export default function Hero() {
             className="h-1.5 w-1.5 rounded-full bg-current"
           />
         </span>
-      </motion.a>
+      </a>
     </section>
   );
 }

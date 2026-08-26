@@ -185,6 +185,46 @@ body {
   transform: translateY(0) scale(0.98);
 }
 
+/* ---------- reveal-on-load (pure CSS — no JS/hydration required) ---------- */
+/*
+ * Content must never depend on JavaScript finishing hydration to become visible —
+ * on a slow phone or weak connection that can take several seconds, during which
+ * the page looks blank/broken (this happened on real devices on first load).
+ * CSS animations start as soon as the stylesheet is parsed, well before any JS
+ * runs, so this is used instead of a framer-motion opacity:0 -> animate() reveal.
+ */
+@keyframes reveal-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reveal-in {
+  animation: reveal-fade-up 0.6s cubic-bezier(0.21, 0.65, 0.35, 1) both;
+}
+
+@keyframes reveal-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Opacity-only variant, for elements that already have their own JS-driven
+   transform (e.g. scroll parallax via framer-motion's style={{ y }}) — combining
+   that with a transform-animating CSS animation would fight over the same
+   `transform` property. */
+.reveal-in-fade {
+  animation: reveal-fade 0.7s ease both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -193,7 +233,11 @@ body {
   .animate-float,
   .animate-float-slow,
   .animate-spin-slower,
-  .animate-glow-pulse {
+  .animate-glow-pulse,
+  .reveal-in,
+  .reveal-in-fade {
     animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 }

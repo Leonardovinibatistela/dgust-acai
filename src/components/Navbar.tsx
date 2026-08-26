@@ -50,12 +50,7 @@ export default function Navbar({
   }, []);
 
   return (
-    <motion.header
-      initial={{ y: -80, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.8, ease: [0.21, 0.65, 0.35, 1] }}
-      className="fixed inset-x-0 top-0 z-50"
-    >
+    <header className="reveal-in-fade fixed inset-x-0 top-0 z-50">
       <div
         className={`transition-all duration-500 ${
           scrolled
@@ -170,6 +165,6 @@ export default function Navbar({
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.header>
+    </header>
   );
 }

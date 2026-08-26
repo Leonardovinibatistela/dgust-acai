@@ -1,49 +1,34 @@
-"use client";
-
-import { motion, useReducedMotion, type Variants } from "framer-motion";
 import type { ReactNode } from "react";
 
+// Still used by a few components (Hero, FAQ) for their own small, self-contained
+// framer-motion animations that aren't gated behind hydration for visibility.
 export const EASE: [number, number, number, number] = [0.21, 0.65, 0.35, 1];
 
-type RevealProps = {
+// Note: these use a pure-CSS animation (see .reveal-in in globals.css), not
+// framer-motion. framer-motion's initial={{opacity:0}} -> animate() pattern
+// renders content invisible in the server HTML and only makes it visible once
+// React hydrates on the client — on a slow phone or weak connection that can
+// take several seconds, during which real users saw a blank/purple page. CSS
+// animations start as soon as the stylesheet is parsed, independent of JS/
+// hydration timing, so content always becomes visible reliably.
+
+export function Reveal({
+  children,
+  delay = 0,
+  className,
+}: {
   children: ReactNode;
   delay?: number;
+  /** kept for call-site compatibility; the CSS animation always travels the same distance */
   y?: number;
   className?: string;
-};
-
-// Note: this animates in on mount rather than on scroll-into-view. Scroll-triggered
-// (whileInView) reveals depend on IntersectionObserver timing that, combined with
-// prefers-reduced-motion's async detection, could leave content stuck at opacity:0
-// forever on some devices. Animating on mount guarantees content always becomes
-// visible, at the small cost of not staggering in as you scroll down the page.
-export function Reveal({ children, delay = 0, y = 32, className }: RevealProps) {
-  const reduce = useReducedMotion();
+}) {
   return (
-    <motion.div
-      className={className}
-      initial={{ opacity: 0, y: reduce ? 0 : y }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.75, delay, ease: EASE }}
-    >
+    <div className={`reveal-in ${className ?? ""}`} style={{ animationDelay: `${delay}s` }}>
       {children}
-    </motion.div>
+    </div>
   );
 }
-
-export const staggerParent: Variants = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.09, delayChildren: 0.05 } },
-};
-
-export const staggerChild: Variants = {
-  hidden: { opacity: 0, y: 28 },
-  show: (delay: number = 0) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.7, ease: EASE, delay },
-  }),
-};
 
 export function StaggerGroup({
   children,
@@ -51,14 +36,10 @@ export function StaggerGroup({
 }: {
   children: ReactNode;
   className?: string;
-  /** @deprecated no longer used — see the comment on Reveal above */
+  /** @deprecated no longer used */
   amount?: number;
 }) {
-  return (
-    <motion.div className={className} variants={staggerParent} initial="hidden" animate="show">
-      {children}
-    </motion.div>
-  );
+  return <div className={className}>{children}</div>;
 }
 
 export function StaggerItem({
@@ -71,9 +52,9 @@ export function StaggerItem({
   delay?: number;
 }) {
   return (
-    <motion.div className={className} variants={staggerChild} custom={delay}>
+    <div className={`reveal-in ${className ?? ""}`} style={{ animationDelay: `${delay}s` }}>
       {children}
-    </motion.div>
+    </div>
   );
 }
 
