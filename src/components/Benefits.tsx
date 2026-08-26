@@ -20,11 +20,6 @@ const benefits = [
     title: "Chega impecável",
     text: "Embalagem térmica premium que mantém a textura cremosa e os toppings intactos até a sua porta.",
   },
-  {
-    icon: Trophy,
-    title: "Ganhe a cada pedido",
-    text: "Cartão fidelidade digital: a cada 10 bowls, o próximo sai por nossa conta. Sem letra miúda.",
-  },
 ];
 
 export default function Benefits() {

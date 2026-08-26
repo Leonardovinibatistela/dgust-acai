@@ -103,7 +103,6 @@ export const combos: Combo[] = [
       "2 toppings extras grátis",
       "Entrega expressa grátis",
       "Embalagem térmica premium",
-      "Cartão de fidelidade digital",
     ],
     cta: "Pedir combo dupla",
   },
@@ -212,7 +211,7 @@ export const faqs: Faq[] = [
   {
     question: "Quais formas de pagamento vocês aceitam?",
     answer:
-      "Pix, cartões de crédito e débito (Visa, Mastercard, Elo), Vale-Alimentação e pagamento na entrega. No app, você ainda acumula pontos no nosso cartão de fidelidade digital.",
+      "Pix, cartões de crédito e débito (Visa, Mastercard, Elo), Vale-Alimentação e pagamento na entrega.",
   },
   {
     question: "Posso montar meu bowl do meu jeito?",
@@ -241,5 +240,4 @@ export const marqueeItems = [
   "Monte do seu jeito",
   "Pagamento na entrega",
   "Embalagem térmica premium",
-  "Cartão fidelidade digital",
 ];

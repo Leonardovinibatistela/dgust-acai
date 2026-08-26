@@ -149,10 +149,10 @@ export default function ProductShowcase({
           eyebrow="Cardápio"
           title={
             <>
-              Escolha seu <span className="text-gradient italic">vício</span> favorito
+              Mais <span className="text-gradient italic">Pedidos</span>
             </>
           }
-          description="As assinaturas mais pedidas da casa. Monte com o tamanho e os toppings que quiser na hora de adicionar."
+          description="Os itens mais pedidos da casa. Monte com o tamanho e os toppings que quiser na hora de adicionar."
         />
 
         {products.length === 0 ? (
