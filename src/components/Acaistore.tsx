@@ -109,6 +109,110 @@ const TOPPINGS_PAID_TRADICIONAL = [
   { name: "Creme de Amendoim 50g", price: 8.00 }
 ];
 
+// Cardápio completo card — tamanhos são clicáveis e trocam o preço mostrado de verdade.
+function MenuProductCard({
+  product,
+  onOpen,
+}: {
+  product: Product;
+  onOpen: (product: Product, size?: { label: string; price: number }) => void;
+}) {
+  const sizes = JSON.parse(product.sizes) as { label: string; price: number }[];
+  const hasMultipleSizes = sizes.length > 1;
+  const [selectedSize, setSelectedSize] = useState(sizes[0] ?? { label: "", price: 0 });
+
+  return (
+    <div
+      onClick={() => onOpen(product, selectedSize)}
+      className="group relative flex flex-col bg-white rounded-3xl overflow-hidden border border-gray-200/60 hover:border-[#581C5C]/40 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+    >
+      {/* Image with name overlay */}
+      <div className="relative h-44 sm:h-48 w-full overflow-hidden bg-gradient-to-br from-purple-100 to-orange-50 flex-shrink-0">
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+
+        {/* Rating badge */}
+        <div className="absolute top-3 left-3 flex items-center space-x-1 bg-white/95 backdrop-blur px-2 py-1 rounded-full text-[10px] font-bold text-amber-600 shadow">
+          <Star className="h-3 w-3 fill-current" />
+          <span>{product.rating}</span>
+          <span className="text-gray-400">({product.reviewsCount})</span>
+        </div>
+
+        {/* Featured badge */}
+        {product.isFeatured && (
+          <span className="absolute top-3 right-3 bg-[#F49D06] text-[#331135] text-[10px] px-2 py-1 rounded-full uppercase tracking-wide font-black shadow">
+            Mais Vendido 🔥
+          </span>
+        )}
+
+        {/* Product name over the image, like the reference cardápio */}
+        <div className="absolute bottom-0 left-0 right-0 p-3.5">
+          <h3 className="font-black text-white text-lg sm:text-xl leading-tight drop-shadow-md">
+            {product.name}
+          </h3>
+        </div>
+      </div>
+
+      {/* Body */}
+      <div className="flex flex-col flex-1 p-4 space-y-3">
+        <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed min-h-[2.2em]">
+          {product.description}
+        </p>
+
+        {/* Size + price options — clique pra selecionar, o preço muda de verdade */}
+        {hasMultipleSizes ? (
+          <div className="flex flex-wrap gap-1.5">
+            {sizes.map((sz) => {
+              const active = sz.label === selectedSize.label;
+              return (
+                <button
+                  key={sz.label}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedSize(sz);
+                  }}
+                  className={`text-[11px] font-bold rounded-lg px-2 py-1 whitespace-nowrap border transition-all ${
+                    active
+                      ? "bg-[#581C5C] border-[#581C5C] text-white shadow-md shadow-purple-900/20 scale-105"
+                      : "bg-purple-50 border-purple-100 text-[#581C5C] hover:border-[#581C5C]/40"
+                  }`}
+                  aria-pressed={active}
+                >
+                  {sz.label}{" "}
+                  <span className={active ? "text-[#FFD37A]" : "text-[#F49D06]"}>
+                    R$ {sz.price.toFixed(2)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <span className="text-lg font-black text-[#F49D06]">
+            R$ {selectedSize.price.toFixed(2)}
+          </span>
+        )}
+
+        {/* CTA */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpen(product, selectedSize);
+          }}
+          className="mt-auto w-full flex items-center justify-center space-x-1.5 bg-[#581C5C] group-hover:bg-[#F49D06] text-white group-hover:text-[#581C5C] font-black text-xs py-2.5 rounded-xl transition-colors shadow-md shadow-purple-900/10"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          <span>Adicionar{hasMultipleSizes ? ` · ${selectedSize.label}` : ""}</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function Acaistore() {
   // Navigation & Category filter
   const [activeCategory, setActiveCategory] = useState("todos");
@@ -219,14 +323,16 @@ export default function Acaistore() {
     localStorage.setItem("dgust_cart_digital", JSON.stringify(newCart));
   };
 
-  const handleOpenCustomizer = async (product: Product) => {
+  const handleOpenCustomizer = async (product: Product, initialSize?: { label: string; price: number }) => {
     setSelectedProduct(product);
     setLoadingDetails(true);
     setIsCustomizerOpen(true);
     setCustomizerQuantity(1);
 
     const sizesArr = JSON.parse(product.sizes);
-    if (sizesArr.length > 0) {
+    if (initialSize) {
+      setSelectedSize(initialSize);
+    } else if (sizesArr.length > 0) {
       setSelectedSize(sizesArr[0]);
     }
 
@@ -601,90 +707,9 @@ export default function Acaistore() {
 
                   {/* Grid of side-by-side product cards */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {itemsInCat.map((prod) => {
-                      const sizes = JSON.parse(prod.sizes);
-                      const basePrice = sizes.length > 0 ? sizes[0].price : 0;
-                      const hasMultipleSizes = sizes.length > 1;
-
-                      return (
-                        <div
-                          key={prod.id}
-                          onClick={() => handleOpenCustomizer(prod)}
-                          className="group relative flex flex-col bg-white rounded-3xl overflow-hidden border border-gray-200/60 hover:border-[#581C5C]/40 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
-                        >
-                          {/* Image with name overlay */}
-                          <div className="relative h-44 sm:h-48 w-full overflow-hidden bg-gradient-to-br from-purple-100 to-orange-50 flex-shrink-0">
-                            <img
-                              src={prod.image}
-                              alt={prod.name}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-
-                            {/* Rating badge */}
-                            <div className="absolute top-3 left-3 flex items-center space-x-1 bg-white/95 backdrop-blur px-2 py-1 rounded-full text-[10px] font-bold text-amber-600 shadow">
-                              <Star className="h-3 w-3 fill-current" />
-                              <span>{prod.rating}</span>
-                              <span className="text-gray-400">({prod.reviewsCount})</span>
-                            </div>
-
-                            {/* Featured badge */}
-                            {prod.isFeatured && (
-                              <span className="absolute top-3 right-3 bg-[#F49D06] text-[#331135] text-[10px] px-2 py-1 rounded-full uppercase tracking-wide font-black shadow">
-                                Mais Vendido 🔥
-                              </span>
-                            )}
-
-                            {/* Product name over the image, like the reference cardápio */}
-                            <div className="absolute bottom-0 left-0 right-0 p-3.5">
-                              <h3 className="font-black text-white text-lg sm:text-xl leading-tight drop-shadow-md">
-                                {prod.name}
-                              </h3>
-                            </div>
-                          </div>
-
-                          {/* Body */}
-                          <div className="flex flex-col flex-1 p-4 space-y-3">
-                            <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed min-h-[2.2em]">
-                              {prod.description}
-                            </p>
-
-                            {/* Size + price options, all visible at a glance */}
-                            {hasMultipleSizes ? (
-                              <div className="flex flex-wrap gap-1.5">
-                                {sizes.map((sz: { label: string; price: number }) => (
-                                  <span
-                                    key={sz.label}
-                                    className="text-[11px] font-bold text-[#581C5C] bg-purple-50 border border-purple-100 rounded-lg px-2 py-1 whitespace-nowrap"
-                                  >
-                                    {sz.label}{" "}
-                                    <span className="text-[#F49D06]">
-                                      R$ {sz.price.toFixed(2)}
-                                    </span>
-                                  </span>
-                                ))}
-                              </div>
-                            ) : (
-                              <span className="text-lg font-black text-[#F49D06]">
-                                R$ {basePrice.toFixed(2)}
-                              </span>
-                            )}
-
-                            {/* CTA */}
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleOpenCustomizer(prod);
-                              }}
-                              className="mt-auto w-full flex items-center justify-center space-x-1.5 bg-[#581C5C] group-hover:bg-[#F49D06] text-white group-hover:text-[#581C5C] font-black text-xs py-2.5 rounded-xl transition-colors shadow-md shadow-purple-900/10"
-                            >
-                              <Plus className="h-3.5 w-3.5" />
-                              <span>Adicionar</span>
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
+                    {itemsInCat.map((prod) => (
+                      <MenuProductCard key={prod.id} product={prod} onOpen={handleOpenCustomizer} />
+                    ))}
                   </div>
 
                 </div>

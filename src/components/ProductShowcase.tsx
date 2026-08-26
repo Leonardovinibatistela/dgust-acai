@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Flame, Plus, Star } from "lucide-react";
 import { SectionHeading, StaggerGroup, StaggerItem } from "./Reveal";
 
@@ -28,10 +29,10 @@ function ProductCard({
   product: ShowcaseProduct;
   index: number;
   categoryLabel: string;
-  onAdd: () => void;
+  onAdd: (size: { label: string; price: number }) => void;
 }) {
   const sizes = JSON.parse(product.sizes) as { label: string; price: number }[];
-  const basePrice = sizes.length > 0 ? sizes[0].price : 0;
+  const [selectedSize, setSelectedSize] = useState(sizes[0] ?? { label: "", price: 0 });
 
   return (
     <StaggerItem delay={index * 0.05}>
@@ -74,30 +75,43 @@ function ProductCard({
 
           {sizes.length > 1 && (
             <div className="flex flex-wrap gap-1.5">
-              {sizes.map((sz) => (
-                <span
-                  key={sz.label}
-                  className="rounded-full border border-white/8 bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-cream-100/65"
-                >
-                  {sz.label} · {brl(sz.price)}
-                </span>
-              ))}
+              {sizes.map((sz) => {
+                const active = sz.label === selectedSize.label;
+                return (
+                  <button
+                    key={sz.label}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedSize(sz);
+                    }}
+                    className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-all duration-200 ${
+                      active
+                        ? "border-transparent bg-gradient-to-r from-acai-500 to-fuchsia-500 text-white shadow-md shadow-acai-500/30"
+                        : "border-white/10 bg-white/[0.04] text-cream-100/65 hover:border-acai-400/40 hover:text-cream-50"
+                    }`}
+                    aria-pressed={active}
+                  >
+                    {sz.label} · {brl(sz.price)}
+                  </button>
+                );
+              })}
             </div>
           )}
 
           <div className="mt-auto flex items-center justify-between gap-3 border-t border-white/8 pt-5">
             <div className="flex flex-col">
               <span className="text-[11px] font-medium uppercase tracking-wider text-cream-100/40">
-                a partir de
+                {sizes.length > 1 ? selectedSize.label : "a partir de"}
               </span>
               <span className="font-display text-2xl font-semibold text-cream-50">
-                {brl(basePrice)}
+                {brl(selectedSize.price)}
               </span>
             </div>
             <button
-              onClick={onAdd}
+              onClick={() => onAdd(selectedSize)}
               className="btn-primary relative flex h-12 min-w-[132px] items-center justify-center gap-2 overflow-hidden rounded-full text-sm font-semibold text-white transition-colors duration-300"
-              aria-label={`Montar ${product.name}`}
+              aria-label={`Montar ${product.name}, tamanho ${selectedSize.label}`}
             >
               <Plus className="h-4 w-4" />
               Adicionar
@@ -116,7 +130,7 @@ export default function ProductShowcase({
 }: {
   products: ShowcaseProduct[];
   categoryLabels: Record<string, string>;
-  onAdd: (product: ShowcaseProduct) => void;
+  onAdd: (product: ShowcaseProduct, size: { label: string; price: number }) => void;
 }) {
   return (
     <section id="cardapio" className="relative py-24 sm:py-32">
@@ -153,7 +167,7 @@ export default function ProductShowcase({
                 product={p}
                 index={i}
                 categoryLabel={categoryLabels[p.category] ?? p.category}
-                onAdd={() => onAdd(p)}
+                onAdd={(size) => onAdd(p, size)}
               />
             ))}
           </StaggerGroup>
