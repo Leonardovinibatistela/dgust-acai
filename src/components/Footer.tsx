@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { Check, Clock, MapPin, Phone, Send } from "lucide-react";
+import { Clock, MapPin, Phone } from "lucide-react";
 import { Logo } from "./Navbar";
 
 function InstagramIcon({ className }: { className?: string }) {
@@ -18,15 +17,6 @@ function FacebookIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
       <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-    </svg>
-  );
-}
-
-function YoutubeIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-      <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" />
-      <path d="m10 15 5-3-5-3z" />
     </svg>
   );
 }
@@ -60,8 +50,6 @@ export default function Footer({
   address: string;
   hours: string;
 }) {
-  const [subscribed, setSubscribed] = useState(false);
-
   return (
     <footer className="relative border-t border-white/8 bg-night-1000">
       <div
@@ -82,7 +70,6 @@ export default function Footer({
               {[
                 { icon: InstagramIcon, label: "Instagram do Dgust Açai" },
                 { icon: FacebookIcon, label: "Facebook do Dgust Açai" },
-                { icon: YoutubeIcon, label: "YouTube do Dgust Açai" },
               ].map((s) => (
                 <a
                   key={s.label}
@@ -94,45 +81,6 @@ export default function Footer({
                 </a>
               ))}
             </div>
-
-            {/* newsletter */}
-            <form
-              className="mt-2 w-full max-w-sm"
-              onSubmit={(e) => {
-                e.preventDefault();
-                setSubscribed(true);
-              }}
-            >
-              <label htmlFor="newsletter" className="mb-2.5 block text-xs font-semibold uppercase tracking-[0.18em] text-cream-100/45">
-                Cupons e novidades
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  id="newsletter"
-                  type="email"
-                  required
-                  placeholder="seu@email.com"
-                  disabled={subscribed}
-                  className="h-12 w-full rounded-full border border-white/10 bg-white/[0.05] px-5 text-sm text-cream-50 placeholder:text-cream-100/30 outline-none transition-colors focus:border-acai-400/60 disabled:opacity-50"
-                />
-                <button
-                  type="submit"
-                  aria-label="Assinar novidades"
-                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
-                    subscribed
-                      ? "bg-emerald-500 text-white"
-                      : "btn-primary text-white"
-                  }`}
-                >
-                  {subscribed ? <Check className="h-5 w-5" /> : <Send className="h-[18px] w-[18px]" />}
-                </button>
-              </div>
-              {subscribed && (
-                <p className="mt-2.5 text-xs font-medium text-emerald-400">
-                  Inscrito! Seu primeiro cupom chega em instantes.
-                </p>
-              )}
-            </form>
           </div>
 
           {/* link columns */}

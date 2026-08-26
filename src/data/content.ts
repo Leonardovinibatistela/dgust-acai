@@ -196,7 +196,7 @@ export const faqs: Faq[] = [
   {
     question: "Qual é a área de entrega do Dgust Açai?",
     answer:
-      "Hoje entregamos em mais de 40 bairros das principais cidades que atendemos. Na hora do pedido, basta digitar seu CEP no app ou no WhatsApp e informamos na hora se chegamos até você — e em quanto tempo.",
+      "Entregamos em Matupá e região. É só fazer o pedido pelo WhatsApp com seu endereço que confirmamos na hora se chegamos até você.",
   },
   {
     question: "Em quanto tempo meu pedido chega?",

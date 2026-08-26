@@ -14,9 +14,8 @@ const links = [
 export function Logo({ compact = false }: { compact?: boolean }) {
   return (
     <a href="#inicio" className="group flex items-center gap-2.5" aria-label="Dgust Açai — início">
-      <span className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-acai-500 via-acai-600 to-fuchsia-600 shadow-lg shadow-acai-600/40 transition-transform duration-500 group-hover:rotate-[-8deg] group-hover:scale-105">
-        <span className="font-display text-lg font-bold text-white">D</span>
-        <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-mango-400 ring-2 ring-night-1000" />
+      <span className="relative flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl shadow-lg shadow-acai-600/40 transition-transform duration-500 group-hover:scale-105">
+        <img src="/images/dgust-logo.jpg" alt="Dgust Açaí" className="h-full w-full object-cover" />
       </span>
       {!compact && (
         <span className="flex flex-col leading-none">
