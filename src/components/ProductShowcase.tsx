@@ -43,7 +43,7 @@ function ProductCard({
             src={product.image}
             alt={`${product.name} — ${product.description}`}
             loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-[1.2s] ease-[cubic-bezier(0.21,0.65,0.35,1)] group-hover:scale-110"
+            className="h-full w-full object-cover object-top transition-transform duration-[1.2s] ease-[cubic-bezier(0.21,0.65,0.35,1)] group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-night-1000/85 via-night-1000/10 to-transparent" />
           {product.isFeatured && (
