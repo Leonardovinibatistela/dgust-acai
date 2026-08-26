@@ -23,6 +23,10 @@ import Footer from "./Footer";
 import { SectionHeading } from "./Reveal";
 
 const WHATSAPP_NUMBER = "5566996605529";
+const PICKUP_ADDRESS = "Rua 2, Matupá - MT, 78525-000";
+const PICKUP_MAPS_URL = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(PICKUP_ADDRESS);
+// Ainda não temos a chave Pix oficial do D'Gust — deixe vazio até ter uma (o checkout combina no WhatsApp enquanto isso).
+const PIX_KEY = "";
 
 interface Product {
   id: string;
@@ -256,8 +260,9 @@ export default function Acaistore() {
   const [customerCity, setCustomerCity] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("pix"); // "pix" | "card" | "cash"
   const [changeFor, setChangeFor] = useState("");
+  const [orderNotes, setOrderNotes] = useState("");
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
-  const [createdOrderCode, setCreatedOrderCode] = useState<string | null>(null);
+  const [pixCopied, setPixCopied] = useState(false);
 
   // Categories list
   const categories = [
@@ -489,55 +494,20 @@ export default function Acaistore() {
     }
   };
 
-  const handlePlaceOrder = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (cart.length === 0) return;
-
-    setIsSubmittingOrder(true);
-    const itemsInput = cart.map(item => ({
-      productId: item.productId,
-      name: item.name,
-      quantity: item.quantity,
-      size: item.size,
-      price: item.price,
-      freeToppings: item.freeToppings,
-      paidToppings: item.paidToppings.map(t => ({ name: t.name, price: t.price }))
-    }));
-
-    const res = await createOrder({
-      customerName,
-      customerPhone,
-      customerAddress: deliveryMethod === "delivery" ? customerAddress : "Retirada no Balcão",
-      customerCity: deliveryMethod === "delivery" ? customerCity : "N/A",
-      deliveryMethod,
-      paymentMethod,
-      total: getCartTotal(),
-      items: itemsInput
-    });
-
-    setIsSubmittingOrder(false);
-
-    if (res.success && res.orderId) {
-      setCreatedOrderCode(res.orderId);
-    } else {
-      alert("Houve um erro ao registrar seu pedido. Tente novamente.");
-    }
-  };
-
-  const handleSendWhatsApp = () => {
-    if (!createdOrderCode) return;
-
+  const buildWhatsAppMessage = (orderCode: string) => {
     let msg = `*🟣 NOVO PEDIDO - D'GUST AÇAÍ 🟣*\n`;
     msg += `-------------------------------------------\n`;
-    msg += `*Pedido:* \`${createdOrderCode}\`\n`;
+    msg += `*Pedido:* \`${orderCode}\`\n`;
     msg += `*Cliente:* ${customerName}\n`;
     msg += `*Telefone:* ${customerPhone}\n`;
-    msg += `*Método:* ${deliveryMethod === "delivery" ? "🚀 Entrega" : "🛍️ Retirada"}\n`;
-    
+    msg += `*Método:* ${deliveryMethod === "delivery" ? "🚀 Entrega" : "🛍️ Retirada no local"}\n`;
+
     if (deliveryMethod === "delivery") {
       msg += `*Endereço:* ${customerAddress} - ${customerCity}\n`;
+    } else {
+      msg += `*Local de retirada:* ${PICKUP_ADDRESS}\n`;
     }
-    
+
     msg += `*Pagamento:* ${paymentMethod.toUpperCase()}`;
     if (paymentMethod === "cash" && changeFor) {
       msg += ` (Troco para R$ ${changeFor})`;
@@ -562,17 +532,57 @@ export default function Acaistore() {
       msg += `*Taxa de entrega:* ${getDeliveryFee() === 0 ? "GRÁTIS" : `R$ ${getDeliveryFee().toFixed(2)}`}\n`;
     }
     msg += `*TOTAL GERAL:* R$ ${getCartTotal().toFixed(2)}\n`;
-    msg += `-------------------------------------------\n\n`;
-    msg += `_Obrigado por pedir na D'Gust Açaí! Seu açaí já está sendo preparado com muito amor! 💜✨_`;
+    msg += `-------------------------------------------\n`;
 
-    const encoded = encodeURIComponent(msg);
-    // WhatsApp redirect link
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`, "_blank");
+    if (orderNotes.trim()) {
+      msg += `\n*📝 Observações:* ${orderNotes.trim()}\n`;
+    }
 
-    // Clear cart and close modals
-    saveCart([]);
-    setIsCheckoutOpen(false);
-    setCreatedOrderCode(null);
+    msg += `\n_Obrigado por pedir na D'Gust Açaí! Seu açaí já está sendo preparado com muito amor! 💜✨_`;
+
+    return msg;
+  };
+
+  const handlePlaceOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (cart.length === 0) return;
+
+    setIsSubmittingOrder(true);
+    const itemsInput = cart.map(item => ({
+      productId: item.productId,
+      name: item.name,
+      quantity: item.quantity,
+      size: item.size,
+      price: item.price,
+      freeToppings: item.freeToppings,
+      paidToppings: item.paidToppings.map(t => ({ name: t.name, price: t.price }))
+    }));
+
+    const res = await createOrder({
+      customerName,
+      customerPhone,
+      customerAddress: deliveryMethod === "delivery" ? customerAddress : PICKUP_ADDRESS,
+      customerCity: deliveryMethod === "delivery" ? customerCity : "N/A",
+      deliveryMethod,
+      paymentMethod,
+      total: getCartTotal(),
+      items: itemsInput
+    });
+
+    setIsSubmittingOrder(false);
+
+    if (res.success && res.orderId) {
+      // Manda direto pro WhatsApp, sem passo extra
+      const encoded = encodeURIComponent(buildWhatsAppMessage(res.orderId));
+      window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`, "_blank");
+
+      saveCart([]);
+      setIsCheckoutOpen(false);
+      setOrderNotes("");
+      setChangeFor("");
+    } else {
+      alert("Houve um erro ao registrar seu pedido. Tente novamente.");
+    }
   };
 
   return (
@@ -1126,228 +1136,253 @@ export default function Acaistore() {
         </div>
       )}
 
-      {/* 8. SIMPLIFIED DELIVERY CHECKOUT MODAL (OlaClick WhatsApp layout) */}
+      {/* 8. CHECKOUT MODAL — mesmo fluxo/estilo usado no site do Yakisoba */}
       {isCheckoutOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-3">
-          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[94vh] flex flex-col">
-            
+          <div className="bg-[#FAF6EE] w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[94vh] flex flex-col">
+
             {/* Modal Header */}
-            <div className="bg-[#581C5C] text-white p-5 flex items-center justify-between flex-shrink-0">
-              <div className="flex items-center space-x-2">
-                <ShieldCheck className="h-5 w-5 text-yellow-300" />
-                <h3 className="font-black text-base uppercase">Enviar Pedido</h3>
+            <div className="p-5 sm:p-6 pb-3 flex items-start justify-between flex-shrink-0">
+              <div>
+                <span className="text-[11px] font-black uppercase tracking-widest text-[#F49D06]">Seu Pedido</span>
+                <h3 className="text-xl font-black text-[#2D0B2E] mt-0.5">Tudo certo por aqui?</h3>
               </div>
               <button
                 onClick={() => setIsCheckoutOpen(false)}
-                className="bg-purple-950 p-1.5 rounded-full hover:bg-red-600 text-white"
+                className="bg-white shadow p-1.5 rounded-full hover:bg-red-50 text-gray-500 hover:text-red-600 flex-shrink-0"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            {/* Check out state rendering */}
-            {!createdOrderCode ? (
-              <form onSubmit={handlePlaceOrder} className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5">
-                
-                {/* Mode Selector */}
-                <div className="space-y-2">
-                  <span className="block text-[11px] font-black uppercase text-gray-400 tracking-wider">Como deseja receber?</span>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setDeliveryMethod("delivery")}
-                      className={`p-3 rounded-xl border-2 flex items-center justify-center space-x-2 transition-all ${
-                        deliveryMethod === "delivery"
-                          ? "border-[#581C5C] bg-purple-50 text-[#581C5C] font-black"
-                          : "border-gray-200 bg-white text-gray-700 text-xs"
-                      }`}
-                    >
-                      <Truck className="h-4 w-4" />
-                      <span className="text-xs">Entrega (+R$ 5,00)</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDeliveryMethod("pickup")}
-                      className={`p-3 rounded-xl border-2 flex items-center justify-center space-x-2 transition-all ${
-                        deliveryMethod === "pickup"
-                          ? "border-[#581C5C] bg-purple-50 text-[#581C5C] font-black"
-                          : "border-gray-200 bg-white text-gray-700 text-xs"
-                      }`}
-                    >
-                      <MapPin className="h-4 w-4" />
-                      <span className="text-xs">Retirar no Balcão</span>
-                    </button>
-                  </div>
-                </div>
+            <form onSubmit={handlePlaceOrder} className="flex-1 overflow-y-auto px-5 sm:px-6 pb-6 space-y-5">
 
-                {/* Name & phone */}
-                <div className="space-y-3">
-                  <span className="block text-[11px] font-black uppercase text-gray-400 tracking-wider">Seus Dados</span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[10px] text-gray-500 font-bold mb-1">Qual o seu nome?</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="Ex: Amanda Silva"
-                        value={customerName}
-                        onChange={(e) => setCustomerName(e.target.value)}
-                        className="w-full p-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#581C5C] text-xs bg-white focus:outline-none"
-                      />
+              {/* Order items summary, with qty steppers */}
+              <div className="space-y-2">
+                {cart.map((item) => (
+                  <div key={item.cartId} className="bg-white rounded-2xl p-3 flex items-center justify-between gap-3 shadow-sm">
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-[#2D0B2E] truncate">{item.name}</p>
+                      <p className="text-[11px] text-gray-400">{item.size} · R$ {item.price.toFixed(2)} cada</p>
                     </div>
-                    <div>
-                      <label className="block text-[10px] text-gray-500 font-bold mb-1">Telefone WhatsApp:</label>
-                      <input
-                        type="tel"
-                        required
-                        placeholder="Ex: (11) 98765-4321"
-                        value={customerPhone}
-                        onChange={(e) => setCustomerPhone(e.target.value)}
-                        className="w-full p-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#581C5C] text-xs bg-white focus:outline-none"
-                      />
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex items-center gap-2 bg-gray-100 rounded-full px-1.5 py-1">
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateCartQty(item.cartId, -1)}
+                          className="w-6 h-6 rounded-full bg-white shadow flex items-center justify-center text-gray-600"
+                        >
+                          <Minus className="h-3 w-3" />
+                        </button>
+                        <span className="text-xs font-black w-4 text-center">{item.quantity}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateCartQty(item.cartId, 1)}
+                          className="w-6 h-6 rounded-full bg-white shadow flex items-center justify-center text-gray-600"
+                        >
+                          <Plus className="h-3 w-3" />
+                        </button>
+                      </div>
+                      <span className="text-sm font-black text-[#581C5C] w-16 text-right">
+                        R$ {(item.price * item.quantity).toFixed(2)}
+                      </span>
                     </div>
                   </div>
+                ))}
+              </div>
+
+              {/* Name & WhatsApp */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-black uppercase text-gray-400 tracking-wider mb-1">Seu nome</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Como podemos te chamar?"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#581C5C] text-xs bg-white focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase text-gray-400 tracking-wider mb-1">Seu WhatsApp</label>
+                  <input
+                    type="tel"
+                    required
+                    placeholder="(66) 9..."
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#581C5C] text-xs bg-white focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Entrega */}
+              <div className="space-y-2">
+                <span className="block text-[10px] font-black uppercase text-gray-400 tracking-wider">Entrega</span>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryMethod("pickup")}
+                    className={`px-4 py-2 rounded-full text-xs font-black transition-all ${
+                      deliveryMethod === "pickup"
+                        ? "bg-[#F49D06] text-[#331135]"
+                        : "bg-white text-gray-500 border border-gray-200"
+                    }`}
+                  >
+                    Retirar no local
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryMethod("delivery")}
+                    className={`px-4 py-2 rounded-full text-xs font-black transition-all ${
+                      deliveryMethod === "delivery"
+                        ? "bg-[#F49D06] text-[#331135]"
+                        : "bg-white text-gray-500 border border-gray-200"
+                    }`}
+                  >
+                    Entrega (+R$ 5,00)
+                  </button>
                 </div>
 
-                {/* Delivery fields */}
-                {deliveryMethod === "delivery" && (
-                  <div className="space-y-3 animate-in fade-in slide-in-from-top-3 duration-200">
-                    <span className="block text-[11px] font-black uppercase text-gray-400 tracking-wider">Endereço de Entrega</span>
-                    <div className="space-y-2.5">
+                {deliveryMethod === "pickup" ? (
+                  <div className="border-2 border-dashed border-[#F49D06]/40 bg-[#F49D06]/5 rounded-2xl p-3 flex items-start justify-between gap-3 animate-in fade-in duration-200">
+                    <div className="flex items-start gap-2 min-w-0">
+                      <MapPin className="h-4 w-4 text-[#F49D06] flex-shrink-0 mt-0.5" />
                       <div>
-                        <label className="block text-[10px] text-gray-500 font-bold mb-1">Rua, número e complemento:</label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="Ex: Av. das Oliveiras, 1420 - Bloco C Apto 23"
-                          value={customerAddress}
-                          onChange={(e) => setCustomerAddress(e.target.value)}
-                          className="w-full p-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#581C5C] text-xs bg-white focus:outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] text-gray-500 font-bold mb-1">Bairro / Cidade:</label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="Ex: Jardim Paulista - São Paulo"
-                          value={customerCity}
-                          onChange={(e) => setCustomerCity(e.target.value)}
-                          className="w-full p-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#581C5C] text-xs bg-white focus:outline-none"
-                        />
+                        <p className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Local de retirada</p>
+                        <p className="text-xs font-bold text-[#2D0B2E]">{PICKUP_ADDRESS}</p>
                       </div>
                     </div>
+                    <a
+                      href={PICKUP_MAPS_URL}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex-shrink-0 bg-[#F49D06] text-[#331135] text-[11px] font-black px-3 py-2 rounded-full whitespace-nowrap"
+                    >
+                      Ver no mapa
+                    </a>
+                  </div>
+                ) : (
+                  <div className="space-y-2 animate-in fade-in slide-in-from-top-3 duration-200">
+                    <input
+                      type="text"
+                      required
+                      placeholder="Rua, número e complemento"
+                      value={customerAddress}
+                      onChange={(e) => setCustomerAddress(e.target.value)}
+                      className="w-full p-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#581C5C] text-xs bg-white focus:outline-none"
+                    />
+                    <input
+                      type="text"
+                      required
+                      placeholder="Bairro / Cidade"
+                      value={customerCity}
+                      onChange={(e) => setCustomerCity(e.target.value)}
+                      className="w-full p-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#581C5C] text-xs bg-white focus:outline-none"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Forma de pagamento */}
+              <div className="space-y-2">
+                <span className="block text-[10px] font-black uppercase text-gray-400 tracking-wider">Forma de pagamento</span>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { id: "pix", label: "Pix" },
+                    { id: "card", label: "Cartão" },
+                    { id: "cash", label: "Dinheiro" }
+                  ].map((pm) => (
+                    <button
+                      key={pm.id}
+                      type="button"
+                      onClick={() => setPaymentMethod(pm.id)}
+                      className={`px-4 py-2 rounded-full text-xs font-black transition-all ${
+                        paymentMethod === pm.id
+                          ? "bg-[#F49D06] text-[#331135]"
+                          : "bg-white text-gray-500 border border-gray-200"
+                      }`}
+                    >
+                      {pm.label}
+                    </button>
+                  ))}
+                </div>
+
+                {paymentMethod === "pix" && (
+                  <div className="border-2 border-dashed border-[#F49D06]/40 bg-[#F49D06]/5 rounded-2xl p-3 space-y-2 animate-in fade-in duration-200">
+                    {PIX_KEY ? (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <input
+                            readOnly
+                            value={PIX_KEY}
+                            className="flex-1 min-w-0 bg-white rounded-lg px-3 py-2 text-xs font-mono text-[#2D0B2E] border border-gray-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(PIX_KEY);
+                              setPixCopied(true);
+                              setTimeout(() => setPixCopied(false), 2000);
+                            }}
+                            className="flex-shrink-0 bg-[#F49D06] text-[#331135] text-[11px] font-black px-3 py-2 rounded-lg"
+                          >
+                            {pixCopied ? "Copiado!" : "Copiar"}
+                          </button>
+                        </div>
+                        <p className="text-[10px] text-gray-500">
+                          Copie a chave, pague no app do seu banco, tire print do comprovante e envie junto com esse pedido no WhatsApp.
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-[11px] text-gray-600">
+                        A chave Pix será combinada com você pelo WhatsApp assim que enviar o pedido.
+                      </p>
+                    )}
                   </div>
                 )}
 
-                {/* Payment Methods */}
-                <div className="space-y-3">
-                  <span className="block text-[11px] font-black uppercase text-gray-400 tracking-wider">Como vai pagar?</span>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { id: "pix", label: "Pix", emoji: "📱" },
-                      { id: "card", label: "Cartão", emoji: "💳" },
-                      { id: "cash", label: "Dinheiro", emoji: "💵" }
-                    ].map((pm) => (
-                      <button
-                        key={pm.id}
-                        type="button"
-                        onClick={() => setPaymentMethod(pm.id)}
-                        className={`p-2 rounded-xl border-2 text-center transition-all ${
-                          paymentMethod === pm.id
-                            ? "border-[#581C5C] bg-purple-50 text-[#581C5C] font-bold"
-                            : "border-gray-200 bg-white text-gray-700 hover:border-purple-200"
-                        }`}
-                      >
-                        <span className="text-base block">{pm.emoji}</span>
-                        <span className="text-[10px] block font-bold">{pm.label}</span>
-                      </button>
-                    ))}
+                {paymentMethod === "cash" && (
+                  <div className="animate-in fade-in duration-200">
+                    <input
+                      type="text"
+                      placeholder="Precisa de troco para quanto?"
+                      value={changeFor}
+                      onChange={(e) => setChangeFor(e.target.value)}
+                      className="w-full sm:w-56 p-2.5 rounded-xl border border-gray-200 text-xs bg-white focus:outline-none"
+                    />
                   </div>
-
-                  {paymentMethod === "cash" && (
-                    <div className="pt-2 animate-in fade-in duration-200">
-                      <label className="block text-[10px] text-gray-500 font-bold mb-1">Precisa de troco para quanto?</label>
-                      <input
-                        type="text"
-                        placeholder="Ex: R$ 50 ou R$ 100"
-                        value={changeFor}
-                        onChange={(e) => setChangeFor(e.target.value)}
-                        className="w-32 p-2 rounded-lg border border-gray-300 text-xs bg-white focus:outline-none"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* Total Account overview */}
-                <div className="bg-[#FAF6EE] p-4 rounded-2xl border border-yellow-600/10 space-y-2 text-xs text-gray-700">
-                  <div className="flex justify-between">
-                    <span>Açaís e Sobremesas:</span>
-                    <span className="font-bold text-[#2D0B2E]">R$ {getCartSubtotal().toFixed(2)}</span>
-                  </div>
-                  {deliveryMethod === "delivery" && (
-                    <div className="flex justify-between">
-                      <span>Taxa de Entrega:</span>
-                      <span className="font-bold text-green-700">
-                        {getDeliveryFee() === 0 ? "GRÁTIS ✨" : `R$ ${getDeliveryFee().toFixed(2)}`}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex justify-between text-sm font-black pt-2 border-t border-purple-500/10 text-[#581C5C]">
-                    <span>Total do Pedido:</span>
-                    <span>R$ {getCartTotal().toFixed(2)}</span>
-                  </div>
-                </div>
-
-                {/* Submit Actions */}
-                <div className="pt-2 flex items-center space-x-3">
-                  <button
-                    type="button"
-                    onClick={() => setIsCheckoutOpen(false)}
-                    className="flex-1 border border-gray-300 hover:bg-gray-100 font-bold py-3 rounded-full text-xs text-center text-gray-600"
-                  >
-                    Voltar à cesta
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmittingOrder}
-                    className="flex-1 bg-[#581C5C] hover:bg-[#F49D06] text-white hover:text-[#581C5C] font-black py-3 rounded-full text-xs shadow-lg transition-all flex items-center justify-center space-x-1"
-                  >
-                    <span>{isSubmittingOrder ? "Gravando..." : "Confirmar Pedido 💜"}</span>
-                  </button>
-                </div>
-
-              </form>
-            ) : (
-              // Order placement success -> WhatsApp redirection
-              <div className="p-6 text-center space-y-6">
-                <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto animate-bounce">
-                  <CheckCircle className="h-10 w-12" />
-                </div>
-
-                <div className="space-y-2">
-                  <h3 className="text-xl font-black text-green-700">Seu Pedido foi Registrado!</h3>
-                  <p className="text-xs text-gray-500">
-                    Obrigado {customerName}! Agora só falta o último passo: Enviar os dados formatados diretamente no WhatsApp da loja para agilizar sua preparação.
-                  </p>
-                  <div className="bg-[#FAF6EE] p-3 rounded-xl border border-yellow-600/10 inline-block font-mono text-[#581C5C] font-black text-base">
-                    Pedido: {createdOrderCode}
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleSendWhatsApp}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white font-black py-4 rounded-full text-xs shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
-                >
-                  <Send className="h-5 w-5" />
-                  <span>ENVIAR PEDIDO COMPLETO NO WHATSAPP</span>
-                </button>
-
-                <p className="text-[10px] text-gray-400 italic">
-                  *Ao clicar, você será redirecionado para o WhatsApp da D'Gust Açaí com sua mensagem pronta!
-                </p>
+                )}
               </div>
-            )}
+
+              {/* Observações */}
+              <div className="space-y-2">
+                <span className="block text-[10px] font-black uppercase text-gray-400 tracking-wider">Observações</span>
+                <textarea
+                  rows={2}
+                  placeholder="Ex: mais morango, sem granola..."
+                  value={orderNotes}
+                  onChange={(e) => setOrderNotes(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#581C5C] text-xs bg-white focus:outline-none resize-none"
+                />
+              </div>
+
+              {/* Total */}
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-xs font-black uppercase text-gray-400 tracking-wider">Total</span>
+                <span className="text-2xl font-black text-[#2D0B2E]">R$ {getCartTotal().toFixed(2)}</span>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmittingOrder || cart.length === 0}
+                className="w-full bg-[#581C5C] hover:bg-[#F49D06] text-white hover:text-[#581C5C] font-black py-4 rounded-full text-xs shadow-xl transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                <Send className="h-4 w-4" />
+                <span>{isSubmittingOrder ? "Enviando..." : "Confirmar e enviar no WhatsApp"}</span>
+              </button>
+            </form>
 
           </div>
         </div>
