@@ -2,15 +2,8 @@
 
 import type { ReactNode } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, Snowflake, Star, Timer, UtensilsCrossed } from "lucide-react";
+import { ArrowRight, Snowflake, Timer, UtensilsCrossed } from "lucide-react";
 import { EASE } from "./Reveal";
-
-const avatars = [
-  { initials: "MS", hue: "from-violet-500 to-fuchsia-500" },
-  { initials: "RT", hue: "from-fuchsia-500 to-pink-500" },
-  { initials: "CR", hue: "from-purple-500 to-indigo-500" },
-  { initials: "JP", hue: "from-amber-400 to-orange-500" },
-];
 
 function Orbs() {
   const reduce = useReducedMotion();
@@ -127,7 +120,7 @@ export default function Hero() {
               className="max-w-lg text-base leading-relaxed text-cream-100/65 sm:text-lg"
             >
               Frutas selecionadas, receita artesanal e aquele congelamento perfeito que só a Dgust
-              tem. Monte seu bowl do seu jeito e receba geladinho onde você estiver.
+              tem. Monte seu açaí do seu jeito e receba geladinho onde você estiver.
             </motion.p>
 
             <motion.div
@@ -140,7 +133,7 @@ export default function Hero() {
                 href="#cardapio"
                 className="btn-primary group inline-flex items-center justify-center gap-2.5 rounded-full px-7 py-4 text-base font-semibold text-white"
               >
-                Montar meu bowl
+                Montar meu açaí
                 <ArrowRight className="h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1.5" />
               </a>
               <a
@@ -150,39 +143,6 @@ export default function Hero() {
                 <UtensilsCrossed className="h-[18px] w-[18px] text-acai-300 transition-transform duration-300 group-hover:rotate-12" />
                 Ver combos
               </a>
-            </motion.div>
-
-            {/* social proof */}
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.68, ease: EASE }}
-              className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-3"
-            >
-              <div className="flex -space-x-3">
-                {avatars.map((a) => (
-                  <span
-                    key={a.initials}
-                    className={`flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br ${a.hue} text-[11px] font-bold text-white ring-2 ring-night-1000`}
-                  >
-                    {a.initials}
-                  </span>
-                ))}
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-night-800 text-[10px] font-bold text-acai-200 ring-2 ring-night-1000">
-                  +50k
-                </span>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="flex items-center gap-1.5">
-                  <span className="flex text-mango-400">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} className="h-3.5 w-3.5 fill-current" />
-                    ))}
-                  </span>
-                  <span className="text-sm font-bold text-cream-50">4.9</span>
-                </span>
-                <span className="text-xs text-cream-100/55">mais de 50 mil pedidos entregues</span>
-              </div>
             </motion.div>
           </motion.div>
 
@@ -202,7 +162,7 @@ export default function Hero() {
               <div className="ring-glow relative h-full w-full overflow-hidden rounded-full">
                 <img
                   src="/images/hero-bowl.jpg"
-                  alt="Bowl de açaí Dgust com banana, morangos, granola e chocolate"
+                  alt="Açaí Dgust com banana, morangos, granola e chocolate"
                   className="h-full w-full scale-[1.06] object-cover"
                   loading="eager"
                 />
@@ -219,11 +179,6 @@ export default function Hero() {
               <FloatChip className="-right-3 top-[42%] sm:-right-8" delay={1.2} label="Sempre geladinho">
                 <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-sky-400 to-indigo-500 text-white">
                   <Snowflake className="h-4 w-4" />
-                </span>
-              </FloatChip>
-              <FloatChip className="bottom-[10%] left-[8%]" delay={1.4} label="4.9 · 12 mil avaliações">
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-mango-400 to-orange-500 text-white">
-                  <Star className="h-4 w-4 fill-current" />
                 </span>
               </FloatChip>
             </div>

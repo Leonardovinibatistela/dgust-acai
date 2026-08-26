@@ -57,7 +57,7 @@ export default function CTA() {
         <Reveal delay={0.16}>
           <p className="mt-6 max-w-xl text-base leading-relaxed text-cream-100/70 sm:text-lg">
             Não deixe para amanhã a sobremesa que você pode estar comendo em meia hora. Monte seu
-            bowl agora e sinta o Dgust hoje mesmo.
+            açaí e Dgust hoje mesmo.
           </p>
         </Reveal>
 

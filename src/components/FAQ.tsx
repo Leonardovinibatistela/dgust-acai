@@ -71,7 +71,7 @@ export default function FAQ({ whatsappUrl }: { whatsappUrl: string }) {
             eyebrow="Dúvidas frequentes"
             title={
               <>
-                Tudo que você precisa saber <span className="text-gradient italic">antes do primeiro bowl</span>
+                Tudo que você precisa saber <span className="text-gradient italic">antes do primeiro açaí</span>
               </>
             }
             description="E se sobrou alguma dúvida, é só chamar a gente — respondemos rapidinho."

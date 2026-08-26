@@ -84,7 +84,7 @@ export const combos: Combo[] = [
     price: 24.9,
     oldPrice: 29.9,
     features: [
-      "1 bowl de 500ml à sua escolha",
+      "1 açaí de 500ml à sua escolha",
       "1 topping extra grátis",
       "Entrega padrão",
       "Pedido no app ou WhatsApp",
@@ -99,7 +99,7 @@ export const combos: Combo[] = [
     oldPrice: 55.8,
     popular: true,
     features: [
-      "2 bowls de 500ml à escolha",
+      "2 açaís de 500ml à escolha",
       "2 toppings extras grátis",
       "Entrega expressa grátis",
       "Embalagem térmica premium",
@@ -113,7 +113,7 @@ export const combos: Combo[] = [
     price: 79.9,
     oldPrice: 99.6,
     features: [
-      "4 bowls de 500ml à escolha",
+      "4 açaís de 500ml à escolha",
       "4 toppings extras grátis",
       "Entrega expressa grátis",
       "Embalagem térmica premium",
@@ -211,17 +211,7 @@ export const faqs: Faq[] = [
   {
     question: "Quais formas de pagamento vocês aceitam?",
     answer:
-      "Pix, cartões de crédito e débito (Visa, Mastercard, Elo), Vale-Alimentação e pagamento na entrega.",
-  },
-  {
-    question: "Posso montar meu bowl do meu jeito?",
-    answer:
-      "Pode e deve! Escolha o tamanho, a base e até 5 toppings entre frutas, crocantes e cremes. No app, cada bowl extra tem um preview ao vivo com o valor atualizado em tempo real.",
-  },
-  {
-    question: "Vocês têm opções sem açúcar ou veganas?",
-    answer:
-      "Temos! O Dgust Fit Protein não tem açúcar adicionado e temos versões veganas com base 100% fruta e toppings de origem vegetal. Todos os alérgenos estão sinalizados no cardápio.",
+      "Pix, cartões de crédito e débito (Visa, Mastercard, Elo) e pagamento na entrega.",
   },
 ];
 

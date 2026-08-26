@@ -739,7 +739,7 @@ export default function Acaistore() {
       {/* 5. GORGEOUS DIGITAL CUSTOMIZER MODAL */}
       {isCustomizerOpen && selectedProduct && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-3">
-          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[92vh] flex flex-col">
+          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[92vh] flex flex-col text-[#2D0B2E]">
             
             {/* Modal Image Header */}
             <div className="relative h-48 bg-purple-950 flex-shrink-0">
@@ -783,7 +783,9 @@ export default function Acaistore() {
                           : "border-gray-200 bg-white hover:border-gray-300 text-xs font-semibold"
                       }`}
                     >
-                      <span className="block text-[11px] uppercase tracking-wider">{sz.label}</span>
+                      <span className={`block text-[11px] uppercase tracking-wider font-black ${selectedSize?.label === sz.label ? "" : "text-[#F49D06]"}`}>
+                        {sz.label}
+                      </span>
                       <span className="block text-xs text-[#F49D06] font-black mt-0.5">R$ {sz.price.toFixed(2)}</span>
                     </button>
                   ))}
@@ -865,70 +867,6 @@ export default function Acaistore() {
                 </div>
               )}
 
-              {/* REVIEWS COLLAPSIBLE OR ACCORDION */}
-              <div className="border-t border-gray-100 pt-4 space-y-3">
-                <span className="text-xs font-black uppercase text-gray-400 tracking-wider block">O que dizem os clientes:</span>
-                
-                {loadingDetails ? (
-                  <p className="text-[11px] text-gray-400 animate-pulse">Carregando opiniões...</p>
-                ) : (
-                  <div className="space-y-2">
-                    {selectedProductDetails?.reviews && selectedProductDetails.reviews.length > 0 ? (
-                      selectedProductDetails.reviews.slice(0, 2).map((rev) => (
-                        <div key={rev.id} className="bg-gray-50 p-3 rounded-xl border border-gray-100 text-[11px] space-y-1">
-                          <div className="flex items-center justify-between font-bold">
-                            <span>{rev.author}</span>
-                            <span className="text-amber-500">{"⭐".repeat(rev.rating)}</span>
-                          </div>
-                          <p className="text-gray-600 leading-normal italic">"{rev.comment}"</p>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-[11px] text-gray-400 italic">Nenhuma opinião registrada ainda. Faça seu pedido e avalie!</p>
-                    )}
-
-                    {/* Quick submit review inside customizer */}
-                    <div className="bg-gray-50/50 p-3 rounded-xl border border-gray-200 space-y-2">
-                      <p className="text-[10px] font-bold text-[#581C5C]">Já provou? Avalie agora:</p>
-                      <div className="grid grid-cols-2 gap-2">
-                        <input 
-                          type="text" 
-                          placeholder="Seu nome"
-                          value={newReviewName}
-                          onChange={(e) => setNewReviewName(e.target.value)}
-                          className="p-1.5 rounded bg-white text-[10px] border border-gray-300 focus:outline-none"
-                        />
-                        <select
-                          value={newReviewRating}
-                          onChange={(e) => setNewReviewRating(Number(e.target.value))}
-                          className="p-1.5 rounded bg-white text-[10px] border border-gray-300 focus:outline-none"
-                        >
-                          <option value={5}>5 Estrelas ⭐</option>
-                          <option value={4}>4 Estrelas ⭐</option>
-                          <option value={3}>3 Estrelas ⭐</option>
-                        </select>
-                      </div>
-                      <input 
-                        type="text" 
-                        placeholder="O que achou do sabor?"
-                        value={newReviewComment}
-                        onChange={(e) => setNewReviewComment(e.target.value)}
-                        className="w-full p-1.5 rounded bg-white text-[10px] border border-gray-300 focus:outline-none"
-                      />
-                      <button 
-                        type="button"
-                        onClick={handleSubmitReview}
-                        className="w-full bg-[#581C5C] text-white py-1 rounded text-[10px] font-bold"
-                      >
-                        Enviar Opinião
-                      </button>
-                      {reviewMessage && <p className="text-[9px] text-green-700 text-center font-bold">{reviewMessage}</p>}
-                    </div>
-
-                  </div>
-                )}
-              </div>
-
             </div>
 
             {/* Footer with Item Quantity controls & Add CTA */}
@@ -1000,7 +938,7 @@ export default function Acaistore() {
       {/* 7. SLIDE-UP CART BOTTOM SHEET */}
       {isCartOpen && (
         <div className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-xs flex justify-end">
-          <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+          <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300 text-[#2D0B2E]">
             
             {/* Header */}
             <div className="bg-[#581C5C] text-white p-5 flex items-center justify-between flex-shrink-0">

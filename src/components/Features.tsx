@@ -22,7 +22,7 @@ const features = [
     icon: SlidersHorizontal,
     title: "Monte do seu jeito",
     description:
-      "Escolha o tamanho, a base e até 5 toppings entre frutas, crocantes e cremes. Cada bowl sai montado na hora, do seu jeitinho.",
+      "Escolha o tamanho, a base e até 5 toppings entre frutas, crocantes e cremes. Cada açaí sai montado na hora, do seu jeitinho.",
     accent: "from-fuchsia-500 to-pink-500",
   },
   {

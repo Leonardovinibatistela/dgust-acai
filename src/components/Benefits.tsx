@@ -8,7 +8,7 @@ const benefits = [
   {
     icon: Smartphone,
     title: "Peça em 3 toques",
-    text: "App ou WhatsApp, sem cadastro chato. Seu histórico de bowls fica salvo para repetir o pedido em segundos.",
+    text: "App ou WhatsApp, sem cadastro chato. Seu histórico de pedidos fica salvo para repetir em segundos.",
   },
   {
     icon: MapPin,
@@ -40,7 +40,7 @@ export default function Benefits() {
             <div className="relative overflow-hidden rounded-[2.2rem] border border-white/10 shadow-2xl shadow-black/50">
               <img
                 src="/images/lifestyle.jpg"
-                alt="Cliente sorrindo com um bowl de açaí Dgust em mãos"
+                alt="Cliente sorrindo com um açaí Dgust em mãos"
                 loading="lazy"
                 className="aspect-[4/5] w-full object-cover sm:aspect-[5/5]"
               />

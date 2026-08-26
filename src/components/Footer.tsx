@@ -35,7 +35,7 @@ const columns = [
   {
     title: "Cardápio",
     links: [
-      { label: "Bowls da casa", href: "#cardapio" },
+      { label: "Açaís da casa", href: "#cardapio" },
       { label: "Combos promocionais", href: "#combos" },
       { label: "Cardápio completo", href: "#cardapio-completo" },
     ],
