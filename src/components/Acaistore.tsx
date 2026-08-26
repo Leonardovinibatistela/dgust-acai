@@ -131,7 +131,7 @@ function MenuProductCard({
         <img
           src={product.image}
           alt={product.name}
-          className="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-500"
+          className="w-full h-full object-cover object-[center_30%] group-hover:scale-110 transition-transform duration-500"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
@@ -733,7 +733,7 @@ export default function Acaistore() {
             
             {/* Modal Image Header */}
             <div className="relative h-48 bg-purple-950 flex-shrink-0">
-              <img src={selectedProduct.image} className="w-full h-full object-cover object-top" />
+              <img src={selectedProduct.image} className="w-full h-full object-cover object-[center_30%]" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20"></div>
               
               {/* Close Button */}
@@ -1027,7 +1027,7 @@ export default function Acaistore() {
                     {/* Upper row */}
                     <div className="flex items-start space-x-3">
                       <div className="w-12 h-12 rounded-lg overflow-hidden bg-purple-100 flex-shrink-0">
-                        <img src={item.image} className="w-full h-full object-cover object-top" />
+                        <img src={item.image} className="w-full h-full object-cover object-[center_30%]" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-bold text-sm text-[#581C5C] truncate">{item.name}</h4>
