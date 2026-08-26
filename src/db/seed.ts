@@ -148,7 +148,7 @@ export const PRODUCT_DATA = [
     name: "Açaí Oreo Trufado",
     description: "Açaí cremoso, creme de oreo de dar água na boca, Nutella irresistível e o toque final de uma bolacha Oreo inteira no topo.",
     category: "premium",
-    image: "https://images.pexels.com/photos/3028139/pexels-photo-3028139.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=1200&w=800",
+    image: "/images/acai-oreo-trufado.jpg",
     sizes: JSON.stringify([
       { label: "300ML", price: 32.00 },
       { label: "500ML", price: 40.00 },
@@ -164,7 +164,7 @@ export const PRODUCT_DATA = [
     name: "Açaí Delícia Tropical",
     description: "Açaí cremoso combinado com o creme de quatro leites com abacaxi e finalizado com abacaxi caramelizado artesanal, trazendo o equilíbrio supremo entre o doce e o cítrico.",
     category: "premium",
-    image: "https://images.pexels.com/photos/12174224/pexels-photo-12174224.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    image: "/images/acai-delicia-tropical.jpg",
     sizes: JSON.stringify([
       { label: "300ML", price: 26.00 },
       { label: "500ML", price: 32.00 },
@@ -180,7 +180,7 @@ export const PRODUCT_DATA = [
     name: "Açaí Banoff",
     description: "Uma obra de arte: açaí cremoso com camadas generosas de doce de leite, fatias de banana fresquinha, farofinha de bolacha crocante e mousse de doce de leite. Uma explosão!",
     category: "premium",
-    image: "https://images.pexels.com/photos/9102652/pexels-photo-9102652.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    image: "/images/acai-banoff.jpg",
     sizes: JSON.stringify([
       { label: "300ML", price: 27.00 },
       { label: "500ML", price: 34.00 },
@@ -196,7 +196,7 @@ export const PRODUCT_DATA = [
     name: "Açaí Beijinho",
     description: "Açaí cremoso combinado com o clássico creme de beijinho de coco, coco ralado crocante, leite em pó e finalizado com um bombom de beijinho de verdade.",
     category: "premium",
-    image: "https://images.pexels.com/photos/8465241/pexels-photo-8465241.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    image: "/images/acai-beijinho.jpg",
     sizes: JSON.stringify([
       { label: "300ML", price: 27.00 },
       { label: "500ML", price: 35.00 },
@@ -212,7 +212,7 @@ export const PRODUCT_DATA = [
     name: "Açaí Morango Supreme",
     description: "Açaí cremoso com camadas generosas e exuberantes de creme de quatro leites e geleia artesanal de morango fresco. Doce na medida exata para o seu paladar.",
     category: "premium",
-    image: "https://images.pexels.com/photos/12273052/pexels-photo-12273052.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    image: "/images/acai-morango-supreme.jpg",
     sizes: JSON.stringify([
       { label: "300ML", price: 27.00 },
       { label: "500ML", price: 34.00 },
