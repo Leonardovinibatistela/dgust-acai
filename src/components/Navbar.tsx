@@ -6,6 +6,7 @@ import { Menu, ShoppingBag, Sparkles, X } from "lucide-react";
 
 const links = [
   { label: "Início", href: "#inicio" },
+  { label: "Mais pedidos", href: "#cardapio" },
   { label: "Monte seu Açaí", href: "#monte-seu-acai" },
   { label: "Cardápio", href: "#cardapio-completo" },
   { label: "FAQ", href: "#faq" },
