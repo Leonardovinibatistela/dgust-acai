@@ -39,7 +39,7 @@ export default function MonteSeuAcai({
   const cheapestExtra = paidToppings.length > 0 ? Math.min(...paidToppings.map((t) => t.price)) : null;
 
   return (
-    <section id="monte-seu-acai" className="relative py-24 sm:py-32">
+    <section id="monte-seu-acai" className="relative py-16 sm:py-28">
       <div
         className="pointer-events-none absolute right-[-10%] top-[10%] h-[460px] w-[460px] rounded-full bg-fuchsia-600/12 blur-[130px]"
         aria-hidden="true"
@@ -58,7 +58,7 @@ export default function MonteSeuAcai({
         {!product || !selected ? (
           <p className="mt-16 text-center text-sm text-cream-100/60">Carregando...</p>
         ) : (
-          <div className="mt-14 grid items-center gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-14">
+          <div className="mt-10 grid items-center gap-6 sm:mt-14 sm:gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-14">
             {/* visual */}
             <Reveal>
               <div className="ring-glow relative overflow-hidden rounded-[2rem]">
@@ -66,7 +66,7 @@ export default function MonteSeuAcai({
                   src={product.image}
                   alt={product.name}
                   loading="lazy"
-                  className="aspect-[4/3] w-full object-cover object-[center_30%] sm:aspect-[16/9] lg:aspect-[4/5]"
+                  className="aspect-[16/10] w-full object-cover object-[center_30%] sm:aspect-[16/9] lg:aspect-[4/5]"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-night-1000/90 via-night-1000/10 to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-6">
@@ -78,7 +78,7 @@ export default function MonteSeuAcai({
 
             {/* escolha */}
             <Reveal delay={0.1}>
-              <div className="glass flex flex-col gap-8 rounded-[2rem] p-6 sm:p-10">
+              <div className="glass flex flex-col gap-6 rounded-[2rem] p-5 sm:gap-8 sm:p-10">
                 {/* como funciona */}
                 <ol className="grid grid-cols-3 gap-3" aria-label="Como funciona">
                   {HOW_IT_WORKS.map((label, index) => (
@@ -110,8 +110,8 @@ export default function MonteSeuAcai({
                               : "border-white/15 bg-white/[0.04] text-cream-50 hover:border-acai-400/50 hover:bg-white/[0.08]"
                           }`}
                         >
-                          <span className="text-base font-bold uppercase tracking-wide">{sz.label}</span>
-                          <span className={`text-base font-semibold ${active ? "text-white" : "text-mango-300"}`}>
+                          <span className="text-sm font-bold uppercase tracking-wide sm:text-base">{sz.label}</span>
+                          <span className={`text-sm font-semibold sm:text-base ${active ? "text-white" : "text-mango-300"}`}>
                             {sz.soldOut ? "Esgotado" : brl(sz.price)}
                           </span>
                         </button>
@@ -126,7 +126,7 @@ export default function MonteSeuAcai({
                     type="button"
                     onClick={() => !selected.soldOut && onStart(product, selected)}
                     disabled={selected.soldOut}
-                    className="btn-primary group inline-flex min-h-[60px] w-full cursor-pointer items-center justify-center gap-3 rounded-full px-8 text-lg font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mango-400 focus-visible:ring-offset-2 focus-visible:ring-offset-night-900"
+                    className="btn-primary group inline-flex min-h-[60px] w-full cursor-pointer items-center justify-center gap-3 rounded-full px-6 text-lg font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mango-400 focus-visible:ring-offset-2 focus-visible:ring-offset-night-900"
                   >
                     {selected.soldOut ? "Esgotado no momento" : "Monte seu açaí"}
                     <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1.5" />
