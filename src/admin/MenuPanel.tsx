@@ -16,6 +16,8 @@ import {
   type MenuStatus,
 } from "../lib/menuStatus";
 import { brl, btn, btnDanger, btnOn, btnPrimary, card, eyebrow, input } from "./ui";
+import type { ConfirmFn } from "./useConfirm";
+import PhotoDialog from "./PhotoDialog";
 
 type CatalogProduct = {
   id: string;
@@ -40,7 +42,7 @@ const errorText = (error: unknown) => {
   return `${e?.code ? `[${e.code}] ` : ""}${e?.message ?? String(error)}`;
 };
 
-export default function MenuPanel({ status, onError }: { status: MenuStatus; onError: (message: string) => void }) {
+export default function MenuPanel({ status, onError, confirm }: { status: MenuStatus; onError: (message: string) => void; confirm: ConfirmFn }) {
   const [products, setProducts] = useState<CatalogProduct[] | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
   const [search, setSearch] = useState("");
@@ -52,6 +54,9 @@ export default function MenuPanel({ status, onError }: { status: MenuStatus; onE
 
   const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
   const [priceDraft, setPriceDraft] = useState("");
+
+  const [photoProductId, setPhotoProductId] = useState<string | null>(null);
+  const photoProduct = photoProductId ? (products ?? []).find((p) => p.id === photoProductId) ?? null : null;
 
   useEffect(() => {
     getProducts("todos").then((res) => {
@@ -109,8 +114,8 @@ export default function MenuPanel({ status, onError }: { status: MenuStatus; onE
 
   const resetProduct = (p: CatalogProduct) => run(p.id, Promise.all([clearItemName(p.id), clearItemDescription(p.id)]), "Não foi possível restaurar o padrão.");
 
-  const toggleHidden = (p: CatalogProduct, currentName: string, hidden: boolean) => {
-    if (!hidden && !window.confirm(`Tirar "${currentName}" do site? Ele some do cardápio para os clientes, mas fica guardado aqui e dá pra restaurar quando quiser.`)) return;
+  const toggleHidden = async (p: CatalogProduct, currentName: string, hidden: boolean) => {
+    if (!hidden && !(await confirm(`Tirar "${currentName}" do site? Ele some do cardápio para os clientes, mas fica guardado aqui e dá pra restaurar quando quiser.`, { confirmLabel: "Tirar do site", danger: true }))) return;
     run(p.id, setItemHidden(p.id, !hidden), "Não foi possível atualizar esse item.");
   };
 
@@ -167,7 +172,15 @@ export default function MenuPanel({ status, onError }: { status: MenuStatus; onE
               return (
                 <article key={p.id} className={`rounded-2xl border border-white/10 bg-night-900/80 p-4 sm:p-5 ${hidden ? "opacity-60" : ""}`}>
                   <div className="flex items-start gap-3">
-                    <img src={p.image} alt="" className="h-14 w-14 shrink-0 rounded-xl border border-white/15 object-cover object-[center_30%]" />
+                    <button
+                      type="button"
+                      onClick={() => setPhotoProductId(p.id)}
+                      className="group relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mango-400"
+                      aria-label={`Ver e trocar a foto de ${name}`}
+                    >
+                      <img src={status.photos[p.id] ?? p.image} alt="" className="h-full w-full object-cover object-[center_30%]" />
+                      <span className="absolute inset-x-0 bottom-0 bg-black/70 py-0.5 text-center text-[10px] font-semibold text-white">Ver / trocar</span>
+                    </button>
                     <div className="min-w-0 flex-1">
                       {editing ? (
                         <div className="space-y-2">
@@ -289,6 +302,17 @@ export default function MenuPanel({ status, onError }: { status: MenuStatus; onE
           </div>
         </section>
       ))}
+
+      {photoProduct && (
+        <PhotoDialog
+          productId={photoProduct.id}
+          productName={status.names[photoProduct.id] ?? photoProduct.name}
+          currentImage={status.photos[photoProduct.id] ?? photoProduct.image}
+          isCustom={status.photos[photoProduct.id] !== undefined}
+          onClose={() => setPhotoProductId(null)}
+          onError={onError}
+        />
+      )}
     </div>
   );
 }

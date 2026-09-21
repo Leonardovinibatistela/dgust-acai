@@ -15,6 +15,7 @@ import {
   type OrderRecord,
 } from "./adminData";
 import type { OrderAlerts } from "./useOrderAlerts";
+import type { ConfirmFn } from "./useConfirm";
 import { brl, btn, btnDanger, card, eyebrow, input } from "./ui";
 
 const PAYMENT_LABELS: Record<string, string> = { pix: "Pix", cartao: "Cartão", dinheiro: "Dinheiro" };
@@ -126,7 +127,7 @@ function OrderCard({ order, alerts, deleting, onDelete }: { order: OrderRecord; 
   );
 }
 
-export default function OrdersPanel({ orders, alerts, onError }: { orders: OrderRecord[] | null; alerts: OrderAlerts; onError: (message: string) => void }) {
+export default function OrdersPanel({ orders, alerts, onError, confirm }: { orders: OrderRecord[] | null; alerts: OrderAlerts; onError: (message: string) => void; confirm: ConfirmFn }) {
   const [pickedDate, setPickedDate] = useState(() => toDateInputValue(new Date()));
   const [pickedOrders, setPickedOrders] = useState<OrderRecord[] | null>(null);
   const [loadingPicked, setLoadingPicked] = useState(false);
@@ -157,10 +158,14 @@ export default function OrdersPanel({ orders, alerts, onError }: { orders: Order
 
   const listedOrders = isToday ? todayOrders : pickedOrders ?? [];
   const sortedOrders = [...listedOrders].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-  const top3 = bestSellers(monthOrders, 3);
+  const topByPeriod = [
+    { label: "Hoje", items: bestSellers(todayOrders, 3) },
+    { label: "Esta semana", items: bestSellers(weekOrders, 3) },
+    { label: "Este mês", items: bestSellers(monthOrders, 3) },
+  ];
 
-  const handleDelete = (order: OrderRecord) => {
-    if (!window.confirm(`Apagar o Pedido #${order.orderNumber}? Essa ação não pode ser desfeita.`)) return;
+  const handleDelete = async (order: OrderRecord) => {
+    if (!(await confirm(`Apagar o Pedido #${order.orderNumber}? Essa ação não pode ser desfeita.`, { confirmLabel: "Apagar pedido", danger: true }))) return;
     setDeletingId(order.id);
     deleteOrder(order.id)
       .then(() => {
@@ -258,22 +263,29 @@ export default function OrdersPanel({ orders, alerts, onError }: { orders: Order
         )}
       </section>
 
-      <section className={card} aria-label="Mais vendidos do mês">
-        <p className={eyebrow}>Este mês</p>
-        <h2 className="font-display mt-1 text-xl font-semibold text-cream-50">Os 3 mais vendidos</h2>
-        {top3.length === 0 ? (
-          <p className="mt-3 text-sm text-cream-100/70">Sem pedidos ainda neste mês.</p>
-        ) : (
-          <ol className="mt-4 space-y-2.5">
-            {top3.map((item, index) => (
-              <li key={item.name} className="flex items-center gap-3">
-                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-acai-500/20 text-xs font-bold text-acai-200">{index + 1}</span>
-                <span className="min-w-0 flex-1 truncate text-sm font-semibold text-cream-50">{item.name}</span>
-                <span className="shrink-0 text-sm text-cream-100/70">{item.quantity}x</span>
-              </li>
-            ))}
-          </ol>
-        )}
+      <section aria-label="Mais vendidos">
+        <p className={eyebrow}>Ranking</p>
+        <h2 className="font-display mt-1 text-2xl font-semibold text-cream-50">Os 3 mais vendidos</h2>
+        <div className="mt-4 grid gap-4 lg:grid-cols-3">
+          {topByPeriod.map(({ label, items }) => (
+            <div key={label} className={card}>
+              <p className={eyebrow}>{label}</p>
+              {items.length === 0 ? (
+                <p className="mt-3 text-sm text-cream-100/70">Sem pedidos ainda.</p>
+              ) : (
+                <ol className="mt-4 space-y-2.5">
+                  {items.map((item, index) => (
+                    <li key={item.name} className="flex items-center gap-3">
+                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-acai-500/20 text-xs font-bold text-acai-200">{index + 1}</span>
+                      <span className="min-w-0 flex-1 text-sm font-semibold leading-snug text-cream-50">{item.name}</span>
+                      <span className="shrink-0 text-sm text-cream-100/70">{item.quantity}x</span>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </div>
+          ))}
+        </div>
       </section>
     </div>
   );

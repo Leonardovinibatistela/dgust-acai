@@ -8,6 +8,7 @@ import { setEmergencyPause, setManualOpen, useMenuStatus } from "../lib/menuStat
 import { isBeforeClosingTime, isWithinStoreHours, STORE_HOURS_LABEL } from "../lib/storeHours";
 import { subscribeToRecentOrders, type OrderRecord } from "./adminData";
 import { useOrderAlerts } from "./useOrderAlerts";
+import { useConfirm } from "./useConfirm";
 import OrdersPanel from "./OrdersPanel";
 import MenuPanel from "./MenuPanel";
 import { btn, btnDanger, btnOn, btnPrimary, card, eyebrow, input } from "./ui";
@@ -96,6 +97,7 @@ function Dashboard({ user }: { user: User }) {
 
   const status = useMenuStatus();
   const alerts = useOrderAlerts(orders, setNotice);
+  const { confirm, dialog } = useConfirm();
 
   useEffect(() => subscribeToRecentOrders(setOrders, () => setOrdersError("Não foi possível carregar os pedidos. Confira se seu e-mail está liberado nas regras do Firestore.")), []);
 
@@ -107,9 +109,9 @@ function Dashboard({ user }: { user: User }) {
 
   const storeOpen = isWithinStoreHours(clock) || (status.manualOpen && isBeforeClosingTime(clock));
 
-  const togglePause = () => {
+  const togglePause = async () => {
     const next = !status.paused;
-    if (next && !window.confirm("Pausar pedidos agora? O site continua no ar, mas ninguém consegue finalizar pedido até você reativar.")) return;
+    if (next && !(await confirm("Pausar pedidos agora? O site continua no ar, mas ninguém consegue finalizar pedido até você reativar.", { confirmLabel: "Pausar pedidos", danger: true }))) return;
     setTogglingPause(true);
     setEmergencyPause(next)
       .catch(() => setNotice("Não foi possível atualizar a pausa. Tente de novo."))
@@ -196,8 +198,9 @@ function Dashboard({ user }: { user: User }) {
           ))}
         </div>
 
-        {tab === "pedidos" ? <OrdersPanel orders={orders} alerts={alerts} onError={setNotice} /> : <MenuPanel status={status} onError={setNotice} />}
+        {tab === "pedidos" ? <OrdersPanel orders={orders} alerts={alerts} onError={setNotice} confirm={confirm} /> : <MenuPanel status={status} onError={setNotice} confirm={confirm} />}
       </div>
+      {dialog}
     </div>
   );
 }

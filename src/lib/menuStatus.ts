@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { arrayRemove, arrayUnion, deleteField, doc, onSnapshot, setDoc } from "firebase/firestore";
+import { arrayRemove, arrayUnion, collection, deleteDoc, deleteField, doc, onSnapshot, serverTimestamp, setDoc } from "firebase/firestore";
 import { getDb, isFirebaseConfigured } from "./firebase";
 
 // Tudo que o painel controla (esgotado, preço, nome, descrição, excluir do
@@ -65,6 +65,29 @@ export const subscribeDescriptions = (onUpdate: (descriptions: Record<string, st
 export const setItemDescription = (id: string, description: string) => setDoc(statusRef("descriptionOverrides"), { descriptions: { [id]: description } }, { merge: true });
 export const clearItemDescription = (id: string) => setDoc(statusRef("descriptionOverrides"), { descriptions: { [id]: deleteField() } }, { merge: true });
 
+// --- fotos trocadas pelo painel ---
+// Uma foto por produto, guardada no próprio Firestore (coleção menuPhotos, id = id do
+// produto) como imagem JPEG já reduzida no navegador (~100 KB). Serve pra demonstração e
+// pra poucas trocas: o Firebase grátis não tem armazenamento de arquivos. Com muitas fotos
+// trocadas, o ideal é migrar pra um serviço de imagens (Cloudinary, por exemplo).
+export const subscribePhotos = (onUpdate: (photos: Record<string, string>) => void): Unsubscribe => {
+  if (!isFirebaseConfigured) return noop;
+  return onSnapshot(
+    collection(getDb(), "menuPhotos"),
+    (snap) => {
+      const photos: Record<string, string> = {};
+      snap.forEach((d) => {
+        const image = d.data().image;
+        if (typeof image === "string") photos[d.id] = image;
+      });
+      onUpdate(photos);
+    },
+    (error) => console.warn("menuPhotos:", error)
+  );
+};
+export const setProductPhoto = (productId: string, image: string) => setDoc(doc(getDb(), "menuPhotos", productId), { image, updatedAt: serverTimestamp() });
+export const clearProductPhoto = (productId: string) => deleteDoc(doc(getDb(), "menuPhotos", productId));
+
 // --- pausa de emergência e abertura antecipada ---
 export const subscribeEmergencyPause = (onUpdate: (paused: boolean) => void) => listen("emergencyPause", (d) => !!d?.paused, onUpdate);
 export const setEmergencyPause = (paused: boolean) => setDoc(statusRef("emergencyPause"), { paused }, { merge: true });
@@ -79,11 +102,12 @@ export type MenuStatus = {
   prices: Record<string, number>;
   names: Record<string, string>;
   descriptions: Record<string, string>;
+  photos: Record<string, string>;
   paused: boolean;
   manualOpen: boolean;
 };
 
-const EMPTY_STATUS: MenuStatus = { soldOut: new Set(), hidden: new Set(), prices: {}, names: {}, descriptions: {}, paused: false, manualOpen: false };
+const EMPTY_STATUS: MenuStatus = { soldOut: new Set(), hidden: new Set(), prices: {}, names: {}, descriptions: {}, photos: {}, paused: false, manualOpen: false };
 
 export function useMenuStatus(): MenuStatus {
   const [status, setStatus] = useState<MenuStatus>(EMPTY_STATUS);
@@ -95,6 +119,7 @@ export function useMenuStatus(): MenuStatus {
       subscribePrices(patch("prices")),
       subscribeNames(patch("names")),
       subscribeDescriptions(patch("descriptions")),
+      subscribePhotos(patch("photos")),
       subscribeEmergencyPause(patch("paused")),
       subscribeManualOpen(patch("manualOpen")),
     ];
@@ -106,7 +131,7 @@ export function useMenuStatus(): MenuStatus {
 // --- aplica os ajustes do painel em cima do cardápio que vem do banco ---
 export type SizeOption = { label: string; price: number; soldOut?: boolean };
 
-export function applyMenuStatus<P extends { id: string; name: string; description: string; sizes: string }>(products: P[], status: MenuStatus): P[] {
+export function applyMenuStatus<P extends { id: string; name: string; description: string; image: string; sizes: string }>(products: P[], status: MenuStatus): P[] {
   return products
     .filter((p) => !status.hidden.has(p.id))
     .map((p) => {
@@ -114,6 +139,6 @@ export function applyMenuStatus<P extends { id: string; name: string; descriptio
         const id = itemId(p.id, size.label);
         return { label: size.label, price: status.prices[id] ?? size.price, soldOut: status.soldOut.has(id) || status.soldOut.has(p.id) };
       });
-      return { ...p, name: status.names[p.id] ?? p.name, description: status.descriptions[p.id] ?? p.description, sizes: JSON.stringify(sizes) };
+      return { ...p, name: status.names[p.id] ?? p.name, description: status.descriptions[p.id] ?? p.description, image: status.photos[p.id] ?? p.image, sizes: JSON.stringify(sizes) };
     });
 }

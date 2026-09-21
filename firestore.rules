@@ -28,6 +28,20 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------------
+    // Fotos trocadas pelo painel (uma por produto, JPEG já reduzido no navegador).
+    // Qualquer visitante LÊ (o site mostra a foto); só o admin grava/apaga, e o texto
+    // da imagem tem limite de tamanho (o documento do Firestore aceita no máximo ~1 MB).
+    // ---------------------------------------------------------------
+    match /menuPhotos/{productId} {
+      allow read: if true;
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['image', 'updatedAt'])
+        && request.resource.data.image is string
+        && request.resource.data.image.size() < 500000;
+      allow delete: if isAdmin();
+    }
+
+    // ---------------------------------------------------------------
     // Contador do número do pedido. O site precisa LER e AVANÇAR em 1 dentro
     // da transação que grava o pedido; volta pro 1 depois do 100.
     // ---------------------------------------------------------------
