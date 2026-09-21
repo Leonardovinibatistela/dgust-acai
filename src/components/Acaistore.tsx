@@ -15,6 +15,7 @@ import Hero from "./Hero";
 import Marquee from "./Marquee";
 import Features from "./Features";
 import ProductShowcase from "./ProductShowcase";
+import MonteSeuAcai from "./MonteSeuAcai";
 import Benefits from "./Benefits";
 import FAQ from "./FAQ";
 import CTA from "./CTA";
@@ -220,6 +221,7 @@ export default function Acaistore() {
   const [activeCategory, setActiveCategory] = useState("todos");
   const [productsList, setProductsList] = useState<Product[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [monteProduct, setMonteProduct] = useState<Product | null>(null);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("rating");
@@ -298,6 +300,17 @@ export default function Acaistore() {
       }
     }
     loadFeatured();
+  }, []);
+
+  // Base do "Monte seu Açaí" — seção própria na página, independente dos filtros do cardápio completo
+  useEffect(() => {
+    async function loadMonte() {
+      const res = await getProducts("tradicional", undefined, "");
+      if (res.success && res.products && res.products.length > 0) {
+        setMonteProduct(res.products[0] as Product);
+      }
+    }
+    loadMonte();
   }, []);
 
   const categoryLabelMap = Object.fromEntries(categories.map(c => [c.id, c.label]));
@@ -590,6 +603,12 @@ export default function Acaistore() {
         products={featuredProducts}
         categoryLabels={categoryLabelMap}
         onAdd={handleOpenCustomizer}
+      />
+      <MonteSeuAcai
+        product={monteProduct}
+        freeToppings={TOPPINGS_FREE_TRADICIONAL}
+        paidToppings={TOPPINGS_PAID_TRADICIONAL}
+        onStart={(p, size) => handleOpenCustomizer(p as Product, size)}
       />
       <Benefits />
 

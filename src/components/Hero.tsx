@@ -116,7 +116,7 @@ export default function Hero() {
               style={{ animationDelay: "0.4s" }}
             >
               <a
-                href="#cardapio"
+                href="#monte-seu-acai"
                 className="btn-primary group inline-flex items-center justify-center gap-2.5 rounded-full px-7 py-4 text-base font-semibold text-white"
               >
                 Montar meu açaí
