@@ -114,6 +114,9 @@ function OrderCard({ order, alerts, deleting, onDelete }: { order: OrderRecord; 
             <span>{brl(order.deliveryFee)}</span>
           </div>
         )}
+        {order.deliveryType === "entrega" && order.deliveryFee === 0 && (
+          <p className="text-cream-100/75">Taxa de entrega: combinar com o cliente (não cobrada no site).</p>
+        )}
         <div className="flex justify-between text-base font-semibold text-mango-300">
           <span>Total</span>
           <span>{brl(order.total)}</span>

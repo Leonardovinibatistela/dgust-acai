@@ -157,6 +157,7 @@ export function buildReceiptBytes(order: OrderRecord): Uint8Array {
   bytes.push(...divider());
   bytes.push(...CMD_BOLD_ON, ...row("TOTAL", formatTotal(order.total)), ...CMD_BOLD_OFF);
   if (order.deliveryFee > 0) bytes.push(...row("Taxa de entrega:", formatTotal(order.deliveryFee)));
+  else if (order.deliveryType === "entrega") bytes.push(...row("Taxa de entrega:", "a combinar"));
   if (order.paymentMethod) bytes.push(...row("Pagamento:", PAYMENT_LABELS[order.paymentMethod] ?? order.paymentMethod));
   if (order.paymentMethod === "dinheiro" && order.changeFor.trim()) bytes.push(...row("Troco para:", `R$ ${order.changeFor.trim()}`));
   bytes.push(0x0a, 0x0a, 0x0a);

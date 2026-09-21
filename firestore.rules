@@ -7,11 +7,11 @@ service cloud.firestore {
 
     // ---------------------------------------------------------------
     // ADMIN: só quem entra com um destes e-mails (Authentication) mexe no painel.
-    // TROQUE pelo e-mail que você cadastrou em Authentication > Usuários.
+    // Pra liberar mais alguém: cadastre em Authentication > Usuários e some o e-mail na lista.
     // ---------------------------------------------------------------
     function isAdmin() {
       return request.auth != null
-        && request.auth.token.email in ['TROQUE-PELO-EMAIL-DO-ADMIN@exemplo.com'];
+        && request.auth.token.email in ['lv6696184@gmail.com'];
     }
 
     // ---------------------------------------------------------------

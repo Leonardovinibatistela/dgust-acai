@@ -34,6 +34,12 @@ const PIX_KEY = "";
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
+// Taxa de entrega: o dono do Dgust ainda não passou o valor. Enquanto `fee` for null o site
+// não cobra nem inventa número: o total não inclui entrega e o cliente é avisado de que a taxa
+// é combinada pelo WhatsApp. Quando ele definir, troque aqui (ex.: fee: 6, freeFrom: 60 ou null).
+const DELIVERY: { fee: number | null; freeFrom: number | null } = { fee: null, freeFrom: null };
+const brl = (n: number) => `R$ ${n.toFixed(2).replace(".", ",")}`;
+
 interface Product {
   id: string;
   name: string;
@@ -500,9 +506,9 @@ export default function Acaistore() {
   };
 
   const getDeliveryFee = () => {
-    if (deliveryMethod === "pickup") return 0;
-    const sub = getCartSubtotal();
-    return sub >= 50 ? 0 : 5.00;
+    if (deliveryMethod === "pickup" || DELIVERY.fee === null) return 0;
+    if (DELIVERY.freeFrom !== null && getCartSubtotal() >= DELIVERY.freeFrom) return 0;
+    return DELIVERY.fee;
   };
 
   const getCartTotal = () => {
@@ -571,7 +577,7 @@ export default function Acaistore() {
     msg += `-------------------------------------------\n`;
     msg += `*Subtotal:* R$ ${getCartSubtotal().toFixed(2)}\n`;
     if (deliveryMethod === "delivery") {
-      msg += `*Taxa de entrega:* ${getDeliveryFee() === 0 ? "GRÁTIS" : `R$ ${getDeliveryFee().toFixed(2)}`}\n`;
+      msg += `*Taxa de entrega:* ${DELIVERY.fee === null ? "a combinar" : getDeliveryFee() === 0 ? "GRÁTIS" : `R$ ${getDeliveryFee().toFixed(2)}`}\n`;
     }
     msg += `*TOTAL GERAL:* R$ ${getCartTotal().toFixed(2)}\n`;
     msg += `-------------------------------------------\n`;
@@ -1119,7 +1125,13 @@ export default function Acaistore() {
                   </div>
                   <div className="flex justify-between">
                     <span>Taxa de Entrega:</span>
-                    <span className="font-bold text-green-700">A partir de R$ 5,00 (Grátis acima de R$ 50)</span>
+                    <span className="font-bold text-gray-700">
+                      {DELIVERY.fee === null
+                        ? "A combinar no WhatsApp"
+                        : DELIVERY.freeFrom !== null
+                          ? `${brl(DELIVERY.fee)} (grátis acima de ${brl(DELIVERY.freeFrom)})`
+                          : brl(DELIVERY.fee)}
+                    </span>
                   </div>
                 </div>
 
@@ -1253,7 +1265,7 @@ export default function Acaistore() {
                         : "bg-white text-gray-500 border border-gray-200"
                     }`}
                   >
-                    Entrega (+R$ 5,00)
+                    {DELIVERY.fee === null ? "Entrega (taxa a combinar)" : `Entrega (+${brl(DELIVERY.fee)})`}
                   </button>
                 </div>
 
