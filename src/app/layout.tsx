@@ -1,10 +1,21 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
+import { SITE_URL } from "../lib/site";
 
 export const metadata: Metadata = {
-  title: "D'Gust Açaí | O Verdadeiro Açaí Premium",
-  description: "Loja Virtual Oficial da D'Gust Açaí. Monte seu açaí tradicional com adicionais grátis, confira nossos copos premium, barcas e sobremesas irresistíveis!",
+  metadataBase: new URL(SITE_URL),
+  title: "D'Gust Açaí em Matupá - MT | Peça seu açaí online",
+  description: "Peça açaí online na D'Gust Açaí, em Matupá - MT. Monte seu açaí com acompanhamentos grátis, confira os copos premium, barcas e sobremesas e faça o pedido pelo WhatsApp.",
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    siteName: "D'Gust Açaí",
+    title: "D'Gust Açaí em Matupá - MT | Peça seu açaí online",
+    description: "Monte seu açaí do seu jeito e faça o pedido pelo WhatsApp.",
+    images: [{ url: "/images/dgust-logo.jpg", alt: "D'Gust Açaí" }],
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
