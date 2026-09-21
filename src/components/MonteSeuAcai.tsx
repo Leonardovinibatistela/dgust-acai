@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
-import { ArrowRight, Check, Plus } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight } from "lucide-react";
 import { Reveal, SectionHeading } from "./Reveal";
 
 type Size = { label: string; price: number; soldOut?: boolean };
@@ -17,32 +17,26 @@ interface BuildProduct {
 const brl = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-function StepTitle({ n, children }: { n: number; children: ReactNode }) {
-  return (
-    <div className="flex items-center gap-3">
-      <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-acai-500 to-fuchsia-500 text-sm font-bold text-white">
-        {n}
-      </span>
-      <h3 className="text-base font-semibold text-cream-50 sm:text-lg">{children}</h3>
-    </div>
-  );
-}
+const HOW_IT_WORKS = ["Escolha o tamanho", "Escolha os acompanhamentos", "Envie no WhatsApp"];
 
+// Seção propositalmente simples: tamanho + um botão. Os acompanhamentos são escolhidos
+// no montador (modal), que abre logo depois de tocar em "Monte seu açaí".
 export default function MonteSeuAcai({
   product,
-  freeToppings,
   paidToppings,
   onStart,
 }: {
   product: BuildProduct | null;
-  freeToppings: string[];
+  /** Só usado pra mostrar "adicionais a partir de R$ X". */
   paidToppings: Array<{ name: string; price: number }>;
-  /** Abre o montador; `preselect` já deixa um acompanhamento marcado (toque num chip). */
-  onStart: (product: BuildProduct, size: Size, preselect?: { free?: string[]; paid?: Array<{ name: string; price: number }> }) => void;
+  /** Mantido por compatibilidade com quem chama; a lista de grátis vive no montador. */
+  freeToppings?: string[];
+  onStart: (product: BuildProduct, size: Size) => void;
 }) {
   const sizes: Size[] = product ? (JSON.parse(product.sizes) as Size[]) : [];
   const [pickedLabel, setPickedLabel] = useState<string | null>(null);
   const selected = sizes.find((s) => s.label === pickedLabel) ?? sizes.find((s) => !s.soldOut) ?? sizes[0];
+  const cheapestExtra = paidToppings.length > 0 ? Math.min(...paidToppings.map((t) => t.price)) : null;
 
   return (
     <section id="monte-seu-acai" className="relative py-24 sm:py-32">
@@ -55,18 +49,18 @@ export default function MonteSeuAcai({
           eyebrow="Monte seu Açaí"
           title={
             <>
-              Do <span className="text-gradient italic">seu jeito</span>, do começo ao fim
+              Do <span className="text-gradient italic">seu jeito</span>, em 3 passos
             </>
           }
-          description="Escolha o tamanho, capriche nos acompanhamentos grátis e turbine com os adicionais que quiser."
+          description="Escolha o tamanho, toque em Monte seu açaí e capriche nos acompanhamentos."
         />
 
         {!product || !selected ? (
           <p className="mt-16 text-center text-sm text-cream-100/60">Carregando...</p>
         ) : (
-          <div className="mt-14 grid items-start gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:gap-12">
+          <div className="mt-14 grid items-center gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-14">
             {/* visual */}
-            <Reveal className="lg:sticky lg:top-28">
+            <Reveal>
               <div className="ring-glow relative overflow-hidden rounded-[2rem]">
                 <img
                   src={product.image}
@@ -76,22 +70,30 @@ export default function MonteSeuAcai({
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-night-1000/90 via-night-1000/10 to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-6">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-acai-300">
-                    Base do seu pedido
-                  </p>
-                  <p className="font-display mt-1 text-3xl font-semibold text-cream-50">
-                    {product.name}
-                  </p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-acai-300">Base do seu pedido</p>
+                  <p className="font-display mt-1 text-3xl font-semibold text-cream-50">{product.name}</p>
                 </div>
               </div>
             </Reveal>
 
-            {/* steps */}
+            {/* escolha */}
             <Reveal delay={0.1}>
-              <div className="glass flex flex-col gap-9 rounded-[2rem] p-6 sm:p-9">
-                {/* 1. size */}
-                <div className="flex flex-col gap-4">
-                  <StepTitle n={1}>Escolha o tamanho</StepTitle>
+              <div className="glass flex flex-col gap-8 rounded-[2rem] p-6 sm:p-10">
+                {/* como funciona */}
+                <ol className="grid grid-cols-3 gap-3" aria-label="Como funciona">
+                  {HOW_IT_WORKS.map((label, index) => (
+                    <li key={label} className="flex flex-col items-center gap-2 text-center">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-acai-500 to-fuchsia-500 text-sm font-bold text-white">
+                        {index + 1}
+                      </span>
+                      <span className="text-xs font-medium leading-snug text-cream-100/80 sm:text-sm">{label}</span>
+                    </li>
+                  ))}
+                </ol>
+
+                {/* tamanho */}
+                <div className="flex flex-col gap-3">
+                  <p className="text-sm font-semibold text-cream-50">Qual tamanho você quer?</p>
                   <div className="grid grid-cols-3 gap-3" role="group" aria-label="Tamanho do açaí">
                     {sizes.map((sz) => {
                       const active = sz.label === selected.label;
@@ -102,95 +104,37 @@ export default function MonteSeuAcai({
                           onClick={() => setPickedLabel(sz.label)}
                           disabled={sz.soldOut}
                           aria-pressed={active}
-                          className={`flex min-h-[72px] cursor-pointer flex-col items-center justify-center gap-0.5 rounded-2xl border px-2 py-3 transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mango-400 focus-visible:ring-offset-2 focus-visible:ring-offset-night-900 active:scale-[0.97] ${
+                          className={`flex min-h-[84px] cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl border px-2 py-3 transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mango-400 focus-visible:ring-offset-2 focus-visible:ring-offset-night-900 active:scale-[0.97] ${
                             active
                               ? "border-transparent bg-gradient-to-br from-acai-500 to-fuchsia-500 text-white shadow-lg shadow-acai-500/30"
                               : "border-white/15 bg-white/[0.04] text-cream-50 hover:border-acai-400/50 hover:bg-white/[0.08]"
                           }`}
                         >
-                          <span className="text-sm font-bold uppercase tracking-wide">{sz.label}</span>
-                          <span className={`text-sm font-semibold ${active ? "text-white" : "text-mango-300"}`}>
+                          <span className="text-base font-bold uppercase tracking-wide">{sz.label}</span>
+                          <span className={`text-base font-semibold ${active ? "text-white" : "text-mango-300"}`}>
                             {sz.soldOut ? "Esgotado" : brl(sz.price)}
                           </span>
                         </button>
                       );
                     })}
                   </div>
+                </div>
+
+                {/* botão principal */}
+                <div className="flex flex-col gap-3">
                   <button
                     type="button"
                     onClick={() => !selected.soldOut && onStart(product, selected)}
                     disabled={selected.soldOut}
-                    className="btn-primary group inline-flex min-h-[52px] cursor-pointer items-center justify-center gap-2.5 rounded-full px-8 text-base font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mango-400 focus-visible:ring-offset-2 focus-visible:ring-offset-night-900"
+                    className="btn-primary group inline-flex min-h-[60px] w-full cursor-pointer items-center justify-center gap-3 rounded-full px-8 text-lg font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mango-400 focus-visible:ring-offset-2 focus-visible:ring-offset-night-900"
                   >
-                    {selected.soldOut ? "Esgotado no momento" : `Montar meu açaí de ${selected.label}`}
-                    <ArrowRight className="h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1.5" />
+                    {selected.soldOut ? "Esgotado no momento" : "Monte seu açaí"}
+                    <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1.5" />
                   </button>
-                </div>
-
-                {/* 2. free toppings */}
-                <div className="flex flex-col gap-4">
-                  <StepTitle n={2}>
+                  <p className="text-center text-sm text-cream-100/70">
                     Até {product.freeToppingsLimit} acompanhamentos grátis
-                  </StepTitle>
-                  <p className="text-xs text-cream-100/65">Toque num acompanhamento para começar a montar já com ele escolhido.</p>
-                  <ul className="flex flex-wrap gap-2">
-                    {freeToppings.map((t) => (
-                      <li key={t}>
-                        <button
-                          type="button"
-                          onClick={() => onStart(product, selected, { free: [t] })}
-                          disabled={selected.soldOut}
-                          className="flex min-h-9 cursor-pointer items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.05] px-3 py-1.5 text-xs font-medium text-cream-100/90 transition hover:border-acai-400/60 hover:bg-white/[0.1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mango-400 disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.97]"
-                        >
-                          <Check className="h-3 w-3 text-acai-300" aria-hidden="true" />
-                          {t}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* 3. paid toppings */}
-                <div className="flex flex-col gap-4">
-                  <StepTitle n={3}>Turbine com adicionais</StepTitle>
-                  <p className="text-xs text-cream-100/65">Toque num adicional para incluir no seu açaí (o valor é somado ao total).</p>
-                  <ul className="flex flex-wrap gap-2">
-                    {paidToppings.map((t) => (
-                      <li key={t.name}>
-                        <button
-                          type="button"
-                          onClick={() => onStart(product, selected, { paid: [t] })}
-                          disabled={selected.soldOut}
-                          className="flex min-h-9 cursor-pointer items-center gap-1.5 rounded-full border border-mango-400/30 bg-mango-400/[0.07] px-3 py-1.5 text-xs font-medium text-cream-100/90 transition hover:border-mango-400/70 hover:bg-mango-400/[0.14] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mango-400 disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.97]"
-                        >
-                          <Plus className="h-3 w-3 text-mango-300" aria-hidden="true" />
-                          {t.name}
-                          <span className="font-semibold text-mango-300">{brl(t.price)}</span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* cta */}
-                <div className="flex flex-col gap-3 border-t border-white/10 pt-7 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex flex-col">
-                    <span className="text-[11px] font-medium uppercase tracking-wider text-cream-100/50">
-                      {selected.label} · sem adicionais
-                    </span>
-                    <span className="font-display text-3xl font-semibold text-cream-50">
-                      {brl(selected.price)}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => !selected.soldOut && onStart(product, selected)}
-                    disabled={selected.soldOut}
-                    className="btn-primary group inline-flex min-h-[52px] cursor-pointer items-center justify-center gap-2.5 rounded-full px-8 text-base font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mango-400 focus-visible:ring-offset-2 focus-visible:ring-offset-night-900"
-                  >
-                    {selected.soldOut ? "Esgotado no momento" : "Montar meu açaí"}
-                    <ArrowRight className="h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1.5" />
-                  </button>
+                    {cheapestExtra !== null ? ` · adicionais a partir de ${brl(cheapestExtra)}` : ""}
+                  </p>
                 </div>
               </div>
             </Reveal>
