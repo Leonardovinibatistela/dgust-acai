@@ -374,7 +374,11 @@ export default function Acaistore() {
     localStorage.setItem("dgust_cart_digital", JSON.stringify(newCart));
   };
 
-  const handleOpenCustomizer = async (product: Product, initialSize?: { label: string; price: number; soldOut?: boolean }) => {
+  const handleOpenCustomizer = async (
+    product: Product,
+    initialSize?: { label: string; price: number; soldOut?: boolean },
+    preselect?: { free?: string[]; paid?: Array<{ name: string; price: number }> }
+  ) => {
     setSelectedProduct(product);
     setLoadingDetails(true);
     setIsCustomizerOpen(true);
@@ -388,8 +392,8 @@ export default function Acaistore() {
       setSelectedSize(firstAvailable);
     }
 
-    setSelectedFreeToppings([]);
-    setSelectedPaidToppings([]);
+    setSelectedFreeToppings(preselect?.free ?? []);
+    setSelectedPaidToppings(preselect?.paid ?? []);
     setNewReviewName("");
     setNewReviewComment("");
     setNewReviewRating(5);
@@ -430,22 +434,16 @@ export default function Acaistore() {
 
   const { free: freeOptions, paid: paidOptions, limit: freeLimit } = getToppingsLists();
 
+  // Atualização funcional: dois toques seguidos nunca se perdem.
   const handleToggleFreeTopping = (top: string) => {
-    if (selectedFreeToppings.includes(top)) {
-      setSelectedFreeToppings(selectedFreeToppings.filter(t => t !== top));
-    } else {
-      if (selectedFreeToppings.length < freeLimit) {
-        setSelectedFreeToppings([...selectedFreeToppings, top]);
-      }
-    }
+    setSelectedFreeToppings((current) => {
+      if (current.includes(top)) return current.filter((t) => t !== top);
+      return current.length < freeLimit ? [...current, top] : current;
+    });
   };
 
   const handleTogglePaidTopping = (top: { name: string; price: number }) => {
-    if (selectedPaidToppings.some(t => t.name === top.name)) {
-      setSelectedPaidToppings(selectedPaidToppings.filter(t => t.name !== top.name));
-    } else {
-      setSelectedPaidToppings([...selectedPaidToppings, top]);
-    }
+    setSelectedPaidToppings((current) => (current.some((t) => t.name === top.name) ? current.filter((t) => t.name !== top.name) : [...current, top]));
   };
 
   const calculateSinglePrice = () => {
@@ -671,7 +669,7 @@ export default function Acaistore() {
         product={visibleMonte}
         freeToppings={TOPPINGS_FREE_TRADICIONAL}
         paidToppings={TOPPINGS_PAID_TRADICIONAL}
-        onStart={(p, size) => handleOpenCustomizer(p as Product, size)}
+        onStart={(p, size, preselect) => handleOpenCustomizer(p as Product, size, preselect)}
       />
       <Benefits />
 

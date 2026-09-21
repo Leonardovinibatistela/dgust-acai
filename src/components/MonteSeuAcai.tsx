@@ -37,7 +37,8 @@ export default function MonteSeuAcai({
   product: BuildProduct | null;
   freeToppings: string[];
   paidToppings: Array<{ name: string; price: number }>;
-  onStart: (product: BuildProduct, size: Size) => void;
+  /** Abre o montador; `preselect` já deixa um acompanhamento marcado (toque num chip). */
+  onStart: (product: BuildProduct, size: Size, preselect?: { free?: string[]; paid?: Array<{ name: string; price: number }> }) => void;
 }) {
   const sizes: Size[] = product ? (JSON.parse(product.sizes) as Size[]) : [];
   const [pickedLabel, setPickedLabel] = useState<string | null>(null);
@@ -101,7 +102,7 @@ export default function MonteSeuAcai({
                           onClick={() => setPickedLabel(sz.label)}
                           disabled={sz.soldOut}
                           aria-pressed={active}
-                          className={`flex min-h-[72px] flex-col items-center justify-center gap-0.5 rounded-2xl border px-2 py-3 transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mango-400 focus-visible:ring-offset-2 focus-visible:ring-offset-night-900 active:scale-[0.97] ${
+                          className={`flex min-h-[72px] cursor-pointer flex-col items-center justify-center gap-0.5 rounded-2xl border px-2 py-3 transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mango-400 focus-visible:ring-offset-2 focus-visible:ring-offset-night-900 active:scale-[0.97] ${
                             active
                               ? "border-transparent bg-gradient-to-br from-acai-500 to-fuchsia-500 text-white shadow-lg shadow-acai-500/30"
                               : "border-white/15 bg-white/[0.04] text-cream-50 hover:border-acai-400/50 hover:bg-white/[0.08]"
@@ -115,6 +116,15 @@ export default function MonteSeuAcai({
                       );
                     })}
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => !selected.soldOut && onStart(product, selected)}
+                    disabled={selected.soldOut}
+                    className="btn-primary group inline-flex min-h-[52px] cursor-pointer items-center justify-center gap-2.5 rounded-full px-8 text-base font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mango-400 focus-visible:ring-offset-2 focus-visible:ring-offset-night-900"
+                  >
+                    {selected.soldOut ? "Esgotado no momento" : `Montar meu açaí de ${selected.label}`}
+                    <ArrowRight className="h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1.5" />
+                  </button>
                 </div>
 
                 {/* 2. free toppings */}
@@ -122,14 +132,19 @@ export default function MonteSeuAcai({
                   <StepTitle n={2}>
                     Até {product.freeToppingsLimit} acompanhamentos grátis
                   </StepTitle>
+                  <p className="text-xs text-cream-100/65">Toque num acompanhamento para começar a montar já com ele escolhido.</p>
                   <ul className="flex flex-wrap gap-2">
                     {freeToppings.map((t) => (
-                      <li
-                        key={t}
-                        className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-xs font-medium text-cream-100/85"
-                      >
-                        <Check className="h-3 w-3 text-acai-300" aria-hidden="true" />
-                        {t}
+                      <li key={t}>
+                        <button
+                          type="button"
+                          onClick={() => onStart(product, selected, { free: [t] })}
+                          disabled={selected.soldOut}
+                          className="flex min-h-9 cursor-pointer items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.05] px-3 py-1.5 text-xs font-medium text-cream-100/90 transition hover:border-acai-400/60 hover:bg-white/[0.1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mango-400 disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.97]"
+                        >
+                          <Check className="h-3 w-3 text-acai-300" aria-hidden="true" />
+                          {t}
+                        </button>
                       </li>
                     ))}
                   </ul>
@@ -138,15 +153,20 @@ export default function MonteSeuAcai({
                 {/* 3. paid toppings */}
                 <div className="flex flex-col gap-4">
                   <StepTitle n={3}>Turbine com adicionais</StepTitle>
+                  <p className="text-xs text-cream-100/65">Toque num adicional para incluir no seu açaí (o valor é somado ao total).</p>
                   <ul className="flex flex-wrap gap-2">
                     {paidToppings.map((t) => (
-                      <li
-                        key={t.name}
-                        className="flex items-center gap-1.5 rounded-full border border-mango-400/25 bg-mango-400/[0.07] px-3 py-1.5 text-xs font-medium text-cream-100/90"
-                      >
-                        <Plus className="h-3 w-3 text-mango-300" aria-hidden="true" />
-                        {t.name}
-                        <span className="font-semibold text-mango-300">{brl(t.price)}</span>
+                      <li key={t.name}>
+                        <button
+                          type="button"
+                          onClick={() => onStart(product, selected, { paid: [t] })}
+                          disabled={selected.soldOut}
+                          className="flex min-h-9 cursor-pointer items-center gap-1.5 rounded-full border border-mango-400/30 bg-mango-400/[0.07] px-3 py-1.5 text-xs font-medium text-cream-100/90 transition hover:border-mango-400/70 hover:bg-mango-400/[0.14] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mango-400 disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.97]"
+                        >
+                          <Plus className="h-3 w-3 text-mango-300" aria-hidden="true" />
+                          {t.name}
+                          <span className="font-semibold text-mango-300">{brl(t.price)}</span>
+                        </button>
                       </li>
                     ))}
                   </ul>
@@ -166,7 +186,7 @@ export default function MonteSeuAcai({
                     type="button"
                     onClick={() => !selected.soldOut && onStart(product, selected)}
                     disabled={selected.soldOut}
-                    className="btn-primary group inline-flex min-h-[52px] items-center justify-center gap-2.5 rounded-full px-8 text-base font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mango-400 focus-visible:ring-offset-2 focus-visible:ring-offset-night-900"
+                    className="btn-primary group inline-flex min-h-[52px] cursor-pointer items-center justify-center gap-2.5 rounded-full px-8 text-base font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mango-400 focus-visible:ring-offset-2 focus-visible:ring-offset-night-900"
                   >
                     {selected.soldOut ? "Esgotado no momento" : "Montar meu açaí"}
                     <ArrowRight className="h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1.5" />
