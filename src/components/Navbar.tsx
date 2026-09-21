@@ -34,9 +34,12 @@ export function Logo({ compact = false }: { compact?: boolean }) {
 export default function Navbar({
   cartCount,
   onCartClick,
+  notice,
 }: {
   cartCount: number;
   onCartClick: () => void;
+  /** Aviso fixo no topo (ex.: loja fechada ou pedidos pausados). */
+  notice?: string;
 }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -52,6 +55,12 @@ export default function Navbar({
 
   return (
     <header className="reveal-in-fade fixed inset-x-0 top-0 z-50">
+      {notice && (
+        // Altura fixa de 36px (h-9): o espaçador do Acaistore empurra o Hero na mesma medida.
+        <p role="status" className="flex h-9 items-center justify-center bg-mango-400 px-4 text-xs font-semibold text-night-1000 sm:text-sm">
+          <span className="truncate">{notice}</span>
+        </p>
+      )}
       <div
         className={`transition-all duration-500 ${
           scrolled

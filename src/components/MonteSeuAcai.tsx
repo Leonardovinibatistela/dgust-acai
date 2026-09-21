@@ -4,7 +4,7 @@ import { useState, type ReactNode } from "react";
 import { ArrowRight, Check, Plus } from "lucide-react";
 import { Reveal, SectionHeading } from "./Reveal";
 
-type Size = { label: string; price: number };
+type Size = { label: string; price: number; soldOut?: boolean };
 
 interface BuildProduct {
   id: string;
@@ -41,7 +41,7 @@ export default function MonteSeuAcai({
 }) {
   const sizes: Size[] = product ? (JSON.parse(product.sizes) as Size[]) : [];
   const [pickedLabel, setPickedLabel] = useState<string | null>(null);
-  const selected = sizes.find((s) => s.label === pickedLabel) ?? sizes[0];
+  const selected = sizes.find((s) => s.label === pickedLabel) ?? sizes.find((s) => !s.soldOut) ?? sizes[0];
 
   return (
     <section id="monte-seu-acai" className="relative py-24 sm:py-32">
@@ -99,8 +99,9 @@ export default function MonteSeuAcai({
                           key={sz.label}
                           type="button"
                           onClick={() => setPickedLabel(sz.label)}
+                          disabled={sz.soldOut}
                           aria-pressed={active}
-                          className={`flex min-h-[72px] flex-col items-center justify-center gap-0.5 rounded-2xl border px-2 py-3 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mango-400 focus-visible:ring-offset-2 focus-visible:ring-offset-night-900 active:scale-[0.97] ${
+                          className={`flex min-h-[72px] flex-col items-center justify-center gap-0.5 rounded-2xl border px-2 py-3 transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mango-400 focus-visible:ring-offset-2 focus-visible:ring-offset-night-900 active:scale-[0.97] ${
                             active
                               ? "border-transparent bg-gradient-to-br from-acai-500 to-fuchsia-500 text-white shadow-lg shadow-acai-500/30"
                               : "border-white/15 bg-white/[0.04] text-cream-50 hover:border-acai-400/50 hover:bg-white/[0.08]"
@@ -108,7 +109,7 @@ export default function MonteSeuAcai({
                         >
                           <span className="text-sm font-bold uppercase tracking-wide">{sz.label}</span>
                           <span className={`text-sm font-semibold ${active ? "text-white" : "text-mango-300"}`}>
-                            {brl(sz.price)}
+                            {sz.soldOut ? "Esgotado" : brl(sz.price)}
                           </span>
                         </button>
                       );
@@ -163,10 +164,11 @@ export default function MonteSeuAcai({
                   </div>
                   <button
                     type="button"
-                    onClick={() => onStart(product, selected)}
-                    className="btn-primary group inline-flex min-h-[52px] items-center justify-center gap-2.5 rounded-full px-8 text-base font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mango-400 focus-visible:ring-offset-2 focus-visible:ring-offset-night-900"
+                    onClick={() => !selected.soldOut && onStart(product, selected)}
+                    disabled={selected.soldOut}
+                    className="btn-primary group inline-flex min-h-[52px] items-center justify-center gap-2.5 rounded-full px-8 text-base font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mango-400 focus-visible:ring-offset-2 focus-visible:ring-offset-night-900"
                   >
-                    Montar meu açaí
+                    {selected.soldOut ? "Esgotado no momento" : "Montar meu açaí"}
                     <ArrowRight className="h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1.5" />
                   </button>
                 </div>

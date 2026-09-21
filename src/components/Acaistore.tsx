@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { 
   ShoppingBag, Star, X, Plus, Minus, Search, Sparkles, Phone, 
   MapPin, Truck, ShieldCheck, Heart, ArrowRight, Send, CheckCircle2, 
@@ -8,7 +8,7 @@ import {
   Clock, Motorbike, AlertCircle, Share2, Compass, Trash2, CheckCircle
 } from "lucide-react";
 import {
-  getProducts, getProductById, createReview, createOrder
+  getProducts, getProductById, createReview
 } from "../app/actions";
 import Navbar from "./Navbar";
 import Hero from "./Hero";
@@ -21,12 +21,18 @@ import FAQ from "./FAQ";
 import CTA from "./CTA";
 import Footer from "./Footer";
 import { SectionHeading } from "./Reveal";
+import { applyMenuStatus, itemId, sizeSlug, useMenuStatus } from "../lib/menuStatus";
+import { registerOrder, type OrderLineItem, type OrderPayload } from "../lib/orders";
+import { isFirebaseConfigured } from "../lib/firebase";
+import { isBeforeClosingTime, isWithinStoreHours, STORE_HOURS_LABEL } from "../lib/storeHours";
 
 const WHATSAPP_NUMBER = "5566996605529";
 const PICKUP_ADDRESS = "Rua 2, Matupá - MT, 78525-000";
 const PICKUP_MAPS_URL = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(PICKUP_ADDRESS);
 // Ainda não temos a chave Pix oficial do D'Gust — deixe vazio até ter uma (o checkout combina no WhatsApp enquanto isso).
 const PIX_KEY = "";
+
+const round2 = (n: number) => Math.round(n * 100) / 100;
 
 interface Product {
   id: string;
@@ -118,15 +124,18 @@ function MenuProductCard({
   onOpen,
 }: {
   product: Product;
-  onOpen: (product: Product, size?: { label: string; price: number }) => void;
+  onOpen: (product: Product, size?: { label: string; price: number; soldOut?: boolean }) => void;
 }) {
-  const sizes = JSON.parse(product.sizes) as { label: string; price: number }[];
+  const sizes = JSON.parse(product.sizes) as { label: string; price: number; soldOut?: boolean }[];
   const hasMultipleSizes = sizes.length > 1;
-  const [selectedSize, setSelectedSize] = useState(sizes[0] ?? { label: "", price: 0 });
+  // Guarda só o rótulo escolhido: o preço/esgotado vêm sempre da lista atual (o painel pode mudar ao vivo).
+  const [pickedLabel, setPickedLabel] = useState<string | null>(null);
+  const selectedSize = sizes.find((s) => s.label === pickedLabel) ?? sizes.find((s) => !s.soldOut) ?? sizes[0] ?? { label: "", price: 0 };
+  const selectedSoldOut = !!selectedSize.soldOut;
 
   return (
     <div
-      onClick={() => onOpen(product, selectedSize)}
+      onClick={() => !selectedSoldOut && onOpen(product, selectedSize)}
       className="group relative flex flex-col bg-white rounded-3xl overflow-hidden border border-gray-200/60 hover:border-[#581C5C]/40 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
     >
       {/* Image with name overlay */}
@@ -137,13 +146,6 @@ function MenuProductCard({
           className="w-full h-full object-cover object-[center_30%] group-hover:scale-110 transition-transform duration-500"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-
-        {/* Rating badge */}
-        <div className="absolute top-3 left-3 flex items-center space-x-1 bg-white/95 backdrop-blur px-2 py-1 rounded-full text-[10px] font-bold text-amber-600 shadow">
-          <Star className="h-3 w-3 fill-current" />
-          <span>{product.rating}</span>
-          <span className="text-gray-400">({product.reviewsCount})</span>
-        </div>
 
         {/* Featured badge */}
         {product.isFeatured && (
@@ -177,9 +179,10 @@ function MenuProductCard({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setSelectedSize(sz);
+                    setPickedLabel(sz.label);
                   }}
-                  className={`text-[11px] font-bold rounded-lg px-2 py-1 whitespace-nowrap border transition-all ${
+                  disabled={sz.soldOut}
+                  className={`text-[11px] font-bold rounded-lg px-2 py-1 whitespace-nowrap border transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
                     active
                       ? "bg-[#581C5C] border-[#581C5C] text-white shadow-md shadow-purple-900/20 scale-105"
                       : "bg-purple-50 border-purple-100 text-[#581C5C] hover:border-[#581C5C]/40"
@@ -187,9 +190,14 @@ function MenuProductCard({
                   aria-pressed={active}
                 >
                   {sz.label}{" "}
-                  <span className={active ? "text-[#FFD37A]" : "text-[#F49D06]"}>
-                    R$ {sz.price.toFixed(2)}
-                  </span>
+                  {sz.soldOut ? (
+                    <span className="line-through">R$ {sz.price.toFixed(2)}</span>
+                  ) : (
+                    <span className={active ? "text-[#FFD37A]" : "text-[#F49D06]"}>
+                      R$ {sz.price.toFixed(2)}
+                    </span>
+                  )}
+                  {sz.soldOut && <span className="ml-1 text-red-700">Esgotado</span>}
                 </button>
               );
             })}
@@ -204,12 +212,13 @@ function MenuProductCard({
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onOpen(product, selectedSize);
+            if (!selectedSoldOut) onOpen(product, selectedSize);
           }}
-          className="mt-auto w-full flex items-center justify-center space-x-1.5 bg-[#581C5C] group-hover:bg-[#F49D06] text-white group-hover:text-[#581C5C] font-black text-xs py-2.5 rounded-xl transition-colors shadow-md shadow-purple-900/10"
+          disabled={selectedSoldOut}
+          className="mt-auto w-full flex items-center justify-center space-x-1.5 bg-[#581C5C] group-hover:bg-[#F49D06] text-white group-hover:text-[#581C5C] font-black text-xs py-2.5 rounded-xl transition-colors shadow-md shadow-purple-900/10 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-600 disabled:group-hover:bg-gray-300 disabled:group-hover:text-gray-600"
         >
-          <Plus className="h-3.5 w-3.5" />
-          <span>Adicionar{hasMultipleSizes ? ` · ${selectedSize.label}` : ""}</span>
+          {!selectedSoldOut && <Plus className="h-3.5 w-3.5" />}
+          <span>{selectedSoldOut ? "Esgotado" : `Adicionar${hasMultipleSizes ? ` · ${selectedSize.label}` : ""}`}</span>
         </button>
       </div>
     </div>
@@ -222,6 +231,29 @@ export default function Acaistore() {
   const [productsList, setProductsList] = useState<Product[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [monteProduct, setMonteProduct] = useState<Product | null>(null);
+
+  // Ajustes feitos pelo dono no painel (/admin): esgotado, preço, nome, fora do
+  // site, pausa e abertura antecipada — chegam ao vivo do Firestore.
+  const menuStatus = useMenuStatus();
+  const visibleProducts = useMemo(() => applyMenuStatus(productsList, menuStatus), [productsList, menuStatus]);
+  const visibleFeatured = useMemo(() => applyMenuStatus(featuredProducts, menuStatus), [featuredProducts, menuStatus]);
+  const visibleMonte = useMemo(() => (monteProduct ? applyMenuStatus([monteProduct], menuStatus)[0] ?? null : null), [monteProduct, menuStatus]);
+
+  // Aberto/fechado: o relógio só começa depois de montar (o servidor está em outro fuso).
+  const [clock, setClock] = useState<Date | null>(null);
+  useEffect(() => {
+    setClock(new Date());
+    const timer = setInterval(() => setClock(new Date()), 30000);
+    return () => clearInterval(timer);
+  }, []);
+  const storeOpen = clock === null || isWithinStoreHours(clock) || (menuStatus.manualOpen && isBeforeClosingTime(clock));
+  // Sem Firebase configurado não há painel pra abrir/pausar: não bloqueia ninguém.
+  const ordersBlocked = isFirebaseConfigured && (menuStatus.paused || !storeOpen);
+  const blockedNotice = menuStatus.paused
+    ? "Pedidos pausados no momento. Você pode ver o cardápio, mas o envio volta já já."
+    : `Estamos fechados agora. Funcionamos ${STORE_HOURS_LABEL}.`;
+  // Versão curta pra faixa do topo (precisa caber em uma linha no celular).
+  const blockedBanner = menuStatus.paused ? "Pedidos pausados no momento" : "Fechado agora · abrimos às 13h30";
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("rating");
@@ -336,17 +368,18 @@ export default function Acaistore() {
     localStorage.setItem("dgust_cart_digital", JSON.stringify(newCart));
   };
 
-  const handleOpenCustomizer = async (product: Product, initialSize?: { label: string; price: number }) => {
+  const handleOpenCustomizer = async (product: Product, initialSize?: { label: string; price: number; soldOut?: boolean }) => {
     setSelectedProduct(product);
     setLoadingDetails(true);
     setIsCustomizerOpen(true);
     setCustomizerQuantity(1);
 
-    const sizesArr = JSON.parse(product.sizes);
-    if (initialSize) {
+    const sizesArr = JSON.parse(product.sizes) as { label: string; price: number; soldOut?: boolean }[];
+    const firstAvailable = sizesArr.find((s) => !s.soldOut) ?? sizesArr[0];
+    if (initialSize && !initialSize.soldOut) {
       setSelectedSize(initialSize);
-    } else if (sizesArr.length > 0) {
-      setSelectedSize(sizesArr[0]);
+    } else if (firstAvailable) {
+      setSelectedSize(firstAvailable);
     }
 
     setSelectedFreeToppings([]);
@@ -501,13 +534,15 @@ export default function Acaistore() {
     }
   };
 
-  const buildWhatsAppMessage = (orderCode: string) => {
-    let msg = `*🟣 NOVO PEDIDO - D'GUST AÇAÍ 🟣*\n`;
+  // Mensagem do WhatsApp: texto simples, sem emoji.
+  const buildWhatsAppMessage = (orderNumber: number | null) => {
+    const paymentLabel = paymentMethod === "pix" ? "Pix" : paymentMethod === "card" ? "Cartão" : "Dinheiro";
+    let msg = `*NOVO PEDIDO - D'GUST AÇAÍ*\n`;
     msg += `-------------------------------------------\n`;
-    msg += `*Pedido:* \`${orderCode}\`\n`;
+    if (orderNumber !== null) msg += `*Pedido:* #${orderNumber}\n`;
     msg += `*Cliente:* ${customerName}\n`;
     msg += `*Telefone:* ${customerPhone}\n`;
-    msg += `*Método:* ${deliveryMethod === "delivery" ? "🚀 Entrega" : "🛍️ Retirada no local"}\n`;
+    msg += `*Método:* ${deliveryMethod === "delivery" ? "Entrega" : "Retirada no local"}\n`;
 
     if (deliveryMethod === "delivery") {
       msg += `*Endereço:* ${customerAddress} - ${customerCity}\n`;
@@ -515,22 +550,22 @@ export default function Acaistore() {
       msg += `*Local de retirada:* ${PICKUP_ADDRESS}\n`;
     }
 
-    msg += `*Pagamento:* ${paymentMethod.toUpperCase()}`;
+    msg += `*Pagamento:* ${paymentLabel}`;
     if (paymentMethod === "cash" && changeFor) {
       msg += ` (Troco para R$ ${changeFor})`;
     }
     msg += `\n-------------------------------------------\n\n`;
-    msg += `*🛒 CESTA DE COMPRAS:*\n\n`;
+    msg += `*CESTA DE COMPRAS:*\n\n`;
 
     cart.forEach((item, index) => {
       msg += `*${index + 1}. ${item.name} (${item.size})* x${item.quantity}\n`;
       if (item.freeToppings.length > 0) {
-        msg += ` ↳ Grátis: ${item.freeToppings.join(", ")}\n`;
+        msg += ` - Grátis: ${item.freeToppings.join(", ")}\n`;
       }
       if (item.paidToppings.length > 0) {
-        msg += ` ↳ Extras: ${item.paidToppings.map(t => t.name).join(", ")}\n`;
+        msg += ` - Extras: ${item.paidToppings.map(t => t.name).join(", ")}\n`;
       }
-      msg += ` ↳ Valor: R$ ${(item.price * item.quantity).toFixed(2)}\n\n`;
+      msg += ` - Valor: R$ ${(item.price * item.quantity).toFixed(2)}\n\n`;
     });
 
     msg += `-------------------------------------------\n`;
@@ -542,70 +577,92 @@ export default function Acaistore() {
     msg += `-------------------------------------------\n`;
 
     if (orderNotes.trim()) {
-      msg += `\n*📝 Observações:* ${orderNotes.trim()}\n`;
+      msg += `\n*Observações:* ${orderNotes.trim()}\n`;
     }
 
-    msg += `\n_Obrigado por pedir na D'Gust Açaí! Seu açaí já está sendo preparado com muito amor! 💜✨_`;
+    msg += `\n_Obrigado por pedir na D'Gust Açaí!_`;
 
     return msg;
   };
 
-  const handlePlaceOrder = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (cart.length === 0) return;
-
-    setIsSubmittingOrder(true);
-    const itemsInput = cart.map(item => ({
-      productId: item.productId,
-      name: item.name,
-      quantity: item.quantity,
-      size: item.size,
-      price: item.price,
-      freeToppings: item.freeToppings,
-      paidToppings: item.paidToppings.map(t => ({ name: t.name, price: t.price }))
-    }));
-
-    const res = await createOrder({
-      customerName,
-      customerPhone,
-      customerAddress: deliveryMethod === "delivery" ? customerAddress : PICKUP_ADDRESS,
-      customerCity: deliveryMethod === "delivery" ? customerCity : "N/A",
-      deliveryMethod,
-      paymentMethod,
-      total: getCartTotal(),
-      items: itemsInput
+  // Pedido no formato do painel: cada açaí (com tamanho) é uma linha, e cada
+  // topping escolhido vira uma linha filha logo abaixo (parentId), grátis = R$ 0.
+  const buildOrderPayload = (): OrderPayload => {
+    const items: OrderLineItem[] = cart.flatMap((item) => {
+      const parentId = itemId(item.productId, item.size);
+      const paidExtras = item.paidToppings.reduce((sum, t) => sum + t.price, 0);
+      const basePrice = round2(item.price - paidExtras);
+      return [
+        { id: parentId, name: `${item.name} - ${item.size}`, quantity: item.quantity, unitPrice: basePrice, lineTotal: round2(basePrice * item.quantity) },
+        ...item.freeToppings.map((name) => ({ id: `topping:${sizeSlug(name)}`, name, quantity: item.quantity, unitPrice: 0, lineTotal: 0, parentId })),
+        ...item.paidToppings.map((t) => ({ id: `topping:${sizeSlug(t.name)}`, name: t.name, quantity: item.quantity, unitPrice: t.price, lineTotal: round2(t.price * item.quantity), parentId })),
+      ];
     });
 
+    return {
+      customerName: customerName.trim().slice(0, 80),
+      customerPhone: customerPhone.trim().slice(0, 30),
+      items,
+      subtotal: round2(getCartSubtotal()),
+      deliveryFee: getDeliveryFee(),
+      total: round2(getCartTotal()),
+      deliveryType: deliveryMethod === "delivery" ? "entrega" : "retirada",
+      location: deliveryMethod === "delivery" ? [customerAddress, customerCity].filter(Boolean).join(" - ").slice(0, 200) : "",
+      paymentMethod: paymentMethod === "card" ? "cartao" : paymentMethod === "cash" ? "dinheiro" : "pix",
+      changeFor: paymentMethod === "cash" ? changeFor.trim().slice(0, 20) : "",
+      notes: orderNotes.trim().slice(0, 300),
+    };
+  };
+
+  const handlePlaceOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (cart.length === 0 || isSubmittingOrder || ordersBlocked) return;
+
+    setIsSubmittingOrder(true);
+    // Abre a aba do WhatsApp já no toque: celulares bloqueiam window.open depois de um await.
+    const waWindow = window.open("", "_blank");
+
+    // 1) grava o pedido no painel; 2) abre o WhatsApp. Se o painel falhar (sem
+    // internet, Firebase fora do ar), o pedido segue pro WhatsApp do mesmo jeito.
+    let orderNumber: number | null = null;
+    if (isFirebaseConfigured) {
+      try {
+        orderNumber = await Promise.race([
+          registerOrder(buildOrderPayload()),
+          new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), 12000)),
+        ]);
+      } catch (error) {
+        console.error("Não foi possível registrar o pedido no painel:", error);
+      }
+    }
+
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(buildWhatsAppMessage(orderNumber))}`;
+
+    saveCart([]);
+    setIsCheckoutOpen(false);
+    setOrderNotes("");
+    setChangeFor("");
     setIsSubmittingOrder(false);
 
-    if (res.success && res.orderId) {
-      // Manda direto pro WhatsApp, sem passo extra
-      const encoded = encodeURIComponent(buildWhatsAppMessage(res.orderId));
-      window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`, "_blank");
-
-      saveCart([]);
-      setIsCheckoutOpen(false);
-      setOrderNotes("");
-      setChangeFor("");
-    } else {
-      alert("Houve um erro ao registrar seu pedido. Tente novamente.");
-    }
+    if (waWindow) waWindow.location.href = url;
+    else window.location.href = url;
   };
 
   return (
     <div className="relative min-h-screen overflow-x-clip bg-night-1000 font-sans text-cream-100 antialiased selection:bg-acai-500 selection:text-white">
-      <Navbar cartCount={cartCount} onCartClick={() => setIsCartOpen(true)} />
+      <Navbar cartCount={cartCount} onCartClick={() => setIsCartOpen(true)} notice={ordersBlocked ? blockedBanner : undefined} />
+      {ordersBlocked && <div className="h-9" aria-hidden="true" />}
 
       <Hero />
       <Marquee />
       <Features />
       <ProductShowcase
-        products={featuredProducts}
+        products={visibleFeatured}
         categoryLabels={categoryLabelMap}
         onAdd={handleOpenCustomizer}
       />
       <MonteSeuAcai
-        product={monteProduct}
+        product={visibleMonte}
         freeToppings={TOPPINGS_FREE_TRADICIONAL}
         paidToppings={TOPPINGS_PAID_TRADICIONAL}
         onStart={(p, size) => handleOpenCustomizer(p as Product, size)}
@@ -690,7 +747,7 @@ export default function Acaistore() {
               </div>
             ))}
           </div>
-        ) : productsList.length === 0 ? (
+        ) : visibleProducts.length === 0 ? (
           <div className="bg-white rounded-3xl p-12 text-center space-y-4 border border-gray-200 shadow-sm">
             <span className="text-5xl block">🥣</span>
             <h3 className="text-xl font-bold">Nenhum açaí encontrado</h3>
@@ -711,7 +768,7 @@ export default function Acaistore() {
           // Render grouped by Category
           <div className="space-y-10">
             {categories.filter(c => c.id !== "todos").map((cat) => {
-              const itemsInCat = productsList.filter(p => p.category === cat.id);
+              const itemsInCat = visibleProducts.filter(p => p.category === cat.id);
               if (itemsInCat.length === 0) return null;
 
               return (
@@ -784,12 +841,13 @@ export default function Acaistore() {
               <div className="space-y-2.5">
                 <span className="block text-xs font-black uppercase text-gray-400 tracking-wider">Passo 1: Selecione o tamanho</span>
                 <div className="grid grid-cols-3 gap-2.5">
-                  {JSON.parse(selectedProduct.sizes).map((sz: { label: string; price: number }) => (
+                  {JSON.parse(selectedProduct.sizes).map((sz: { label: string; price: number; soldOut?: boolean }) => (
                     <button
                       key={sz.label}
                       type="button"
+                      disabled={sz.soldOut}
                       onClick={() => setSelectedSize(sz)}
-                      className={`p-3 rounded-xl border-2 text-center transition-all ${
+                      className={`p-3 rounded-xl border-2 text-center transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
                         selectedSize?.label === sz.label
                           ? "border-[#581C5C] bg-purple-50 text-[#581C5C] font-bold"
                           : "border-gray-200 bg-white hover:border-gray-300 text-xs font-semibold"
@@ -798,7 +856,11 @@ export default function Acaistore() {
                       <span className={`block text-[11px] uppercase tracking-wider font-black ${selectedSize?.label === sz.label ? "" : "text-[#F49D06]"}`}>
                         {sz.label}
                       </span>
-                      <span className="block text-xs text-[#F49D06] font-black mt-0.5">R$ {sz.price.toFixed(2)}</span>
+                      {sz.soldOut ? (
+                        <span className="block text-xs text-red-700 font-black mt-0.5">Esgotado</span>
+                      ) : (
+                        <span className="block text-xs text-[#F49D06] font-black mt-0.5">R$ {sz.price.toFixed(2)}</span>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -1324,13 +1386,27 @@ export default function Acaistore() {
                 <span className="text-2xl font-black text-[#2D0B2E]">R$ {getCartTotal().toFixed(2)}</span>
               </div>
 
+              {ordersBlocked && (
+                <p role="alert" className="rounded-xl bg-amber-50 border border-amber-300 px-3 py-2 text-center text-xs font-bold text-amber-900">
+                  {blockedNotice}
+                </p>
+              )}
+
               <button
                 type="submit"
-                disabled={isSubmittingOrder || cart.length === 0}
-                className="w-full bg-[#581C5C] hover:bg-[#F49D06] text-white hover:text-[#581C5C] font-black py-4 rounded-full text-xs shadow-xl transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+                disabled={isSubmittingOrder || cart.length === 0 || ordersBlocked}
+                className="w-full bg-[#581C5C] hover:bg-[#F49D06] text-white hover:text-[#581C5C] font-black py-4 rounded-full text-xs shadow-xl transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <Send className="h-4 w-4" />
-                <span>{isSubmittingOrder ? "Enviando..." : "Confirmar e enviar no WhatsApp"}</span>
+                <span>
+                  {ordersBlocked
+                    ? menuStatus.paused
+                      ? "Pedidos pausados"
+                      : "Fechado no momento"
+                    : isSubmittingOrder
+                      ? "Enviando..."
+                      : "Confirmar e enviar no WhatsApp"}
+                </span>
               </button>
             </form>
 
@@ -1341,7 +1417,7 @@ export default function Acaistore() {
       <Footer
         phone="(66) 99660-5529"
         address="Rua 2, Matupá - MT, 78525-000"
-        hours="Terça a domingo: 13:30–22:00 · Segunda: 13:30–18:30"
+        hours={STORE_HOURS_LABEL}
       />
 
     </div>

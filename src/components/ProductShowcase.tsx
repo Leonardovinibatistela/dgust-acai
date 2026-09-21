@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Flame, Plus, Star } from "lucide-react";
+import { Flame, Plus } from "lucide-react";
 import { SectionHeading, StaggerGroup, StaggerItem } from "./Reveal";
 
 interface ShowcaseProduct {
@@ -29,10 +29,12 @@ function ProductCard({
   product: ShowcaseProduct;
   index: number;
   categoryLabel: string;
-  onAdd: (size: { label: string; price: number }) => void;
+  onAdd: (size: { label: string; price: number; soldOut?: boolean }) => void;
 }) {
-  const sizes = JSON.parse(product.sizes) as { label: string; price: number }[];
-  const [selectedSize, setSelectedSize] = useState(sizes[0] ?? { label: "", price: 0 });
+  const sizes = JSON.parse(product.sizes) as { label: string; price: number; soldOut?: boolean }[];
+  // Só o rótulo escolhido fica no estado: preço e esgotado vêm sempre da lista atual (o painel muda ao vivo).
+  const [pickedLabel, setPickedLabel] = useState<string | null>(null);
+  const selectedSize = sizes.find((s) => s.label === pickedLabel) ?? sizes.find((s) => !s.soldOut) ?? sizes[0] ?? { label: "", price: 0, soldOut: false };
 
   return (
     <StaggerItem delay={index * 0.05}>
@@ -52,10 +54,6 @@ function ProductCard({
               Mais vendido
             </span>
           )}
-          <span className="absolute bottom-4 right-4 flex items-center gap-1 rounded-full bg-black/45 px-3 py-1 text-[11px] font-bold text-cream-100/90 backdrop-blur-sm">
-            <Star className="h-3 w-3 fill-mango-400 text-mango-400" />
-            {product.rating} ({product.reviewsCount})
-          </span>
         </div>
 
         {/* content */}
@@ -83,16 +81,17 @@ function ProductCard({
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setSelectedSize(sz);
+                      setPickedLabel(sz.label);
                     }}
-                    className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-all duration-200 ${
+                    disabled={sz.soldOut}
+                    className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${
                       active
                         ? "border-transparent bg-gradient-to-r from-acai-500 to-fuchsia-500 text-white shadow-md shadow-acai-500/30"
                         : "border-white/10 bg-white/[0.04] text-cream-100/65 hover:border-acai-400/40 hover:text-cream-50"
                     }`}
                     aria-pressed={active}
                   >
-                    {sz.label} · {brl(sz.price)}
+                    {sz.label} · {sz.soldOut ? "Esgotado" : brl(sz.price)}
                   </button>
                 );
               })}
@@ -109,12 +108,19 @@ function ProductCard({
               </span>
             </div>
             <button
-              onClick={() => onAdd(selectedSize)}
-              className="btn-primary relative flex h-12 min-w-[132px] items-center justify-center gap-2 overflow-hidden rounded-full text-sm font-semibold text-white transition-colors duration-300"
-              aria-label={`Montar ${product.name}, tamanho ${selectedSize.label}`}
+              onClick={() => !selectedSize.soldOut && onAdd(selectedSize)}
+              disabled={selectedSize.soldOut}
+              className="btn-primary relative flex h-12 min-w-[132px] items-center justify-center gap-2 overflow-hidden rounded-full text-sm font-semibold text-white transition-colors duration-300 disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label={selectedSize.soldOut ? `${product.name}, tamanho ${selectedSize.label}: esgotado` : `Montar ${product.name}, tamanho ${selectedSize.label}`}
             >
-              <Plus className="h-4 w-4" />
-              Adicionar
+              {selectedSize.soldOut ? (
+                "Esgotado"
+              ) : (
+                <>
+                  <Plus className="h-4 w-4" />
+                  Adicionar
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -130,7 +136,7 @@ export default function ProductShowcase({
 }: {
   products: ShowcaseProduct[];
   categoryLabels: Record<string, string>;
-  onAdd: (product: ShowcaseProduct, size: { label: string; price: number }) => void;
+  onAdd: (product: ShowcaseProduct, size: { label: string; price: number; soldOut?: boolean }) => void;
 }) {
   return (
     <section id="cardapio" className="relative py-24 sm:py-32">

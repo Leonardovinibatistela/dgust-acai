@@ -1,0 +1,83 @@
+rules_version = '2';
+
+// Regras do projeto Firebase do Dgust Açaí.
+// Como usar: Firebase Console > Firestore Database > Regras > cole tudo > Publicar.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------------------------------------------------------------
+    // ADMIN: só quem entra com um destes e-mails (Authentication) mexe no painel.
+    // TROQUE pelo e-mail que você cadastrou em Authentication > Usuários.
+    // ---------------------------------------------------------------
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email in ['TROQUE-PELO-EMAIL-DO-ADMIN@exemplo.com'];
+    }
+
+    // ---------------------------------------------------------------
+    // Cardápio (menuStatus): qualquer visitante LÊ só os documentos abaixo
+    // (o site precisa saber o que está esgotado, o preço, se está pausado).
+    // Só o admin ESCREVE.
+    // ---------------------------------------------------------------
+    match /menuStatus/{docId} {
+      allow read: if docId in [
+        'soldOut', 'hiddenItems', 'priceOverrides', 'nameOverrides',
+        'descriptionOverrides', 'emergencyPause', 'manualOpen'
+      ];
+      allow write: if isAdmin();
+    }
+
+    // ---------------------------------------------------------------
+    // Contador do número do pedido. O site precisa LER e AVANÇAR em 1 dentro
+    // da transação que grava o pedido; volta pro 1 depois do 100.
+    // ---------------------------------------------------------------
+    match /counters/orders {
+      allow get: if true;
+      allow create: if request.resource.data.keys().hasOnly(['current'])
+        && request.resource.data.current == 1;
+      allow update: if request.resource.data.keys().hasOnly(['current'])
+        && request.resource.data.current is int
+        && (
+          request.resource.data.current == resource.data.current + 1
+          || (resource.data.current >= 100 && request.resource.data.current == 1)
+        )
+        && request.resource.data.current <= 100;
+    }
+
+    // ---------------------------------------------------------------
+    // Pedidos: qualquer visitante CRIA um pedido válido (o cliente do site não
+    // tem login) mas ninguém além do admin LÊ, altera ou apaga.
+    // ---------------------------------------------------------------
+    match /orders/{orderId} {
+      allow create: if validOrder(request.resource.data);
+      allow read, update, delete: if isAdmin();
+    }
+
+    function validOrder(d) {
+      return d.keys().hasOnly([
+          'customerName', 'customerPhone', 'items', 'subtotal', 'deliveryFee', 'total',
+          'deliveryType', 'location', 'paymentMethod', 'changeFor', 'notes',
+          'orderNumber', 'createdAt'
+        ])
+        && d.keys().hasAll([
+          'customerName', 'customerPhone', 'items', 'subtotal', 'deliveryFee', 'total',
+          'deliveryType', 'location', 'paymentMethod', 'changeFor', 'notes',
+          'orderNumber', 'createdAt'
+        ])
+        && d.customerName is string && d.customerName.size() > 0 && d.customerName.size() <= 80
+        && d.customerPhone is string && d.customerPhone.size() > 0 && d.customerPhone.size() <= 30
+        && d.items is list && d.items.size() >= 1 && d.items.size() <= 80
+        && d.subtotal is number && d.subtotal >= 0 && d.subtotal <= 3000
+        && d.deliveryFee is number && d.deliveryFee >= 0 && d.deliveryFee <= 30
+        && d.total is number && d.total >= 0 && d.total <= 3030
+        && math.abs(d.total - (d.subtotal + d.deliveryFee)) < 0.01
+        && d.deliveryType in ['retirada', 'entrega']
+        && d.location is string && d.location.size() <= 200
+        && d.paymentMethod in ['pix', 'cartao', 'dinheiro']
+        && d.changeFor is string && d.changeFor.size() <= 20
+        && d.notes is string && d.notes.size() <= 300
+        && d.orderNumber is int && d.orderNumber >= 1 && d.orderNumber <= 100
+        && d.createdAt == request.time;
+    }
+  }
+}
