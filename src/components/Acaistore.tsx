@@ -669,7 +669,7 @@ export default function Acaistore() {
         product={visibleMonte}
         freeToppings={TOPPINGS_FREE_TRADICIONAL}
         paidToppings={TOPPINGS_PAID_TRADICIONAL}
-        onStart={(p, size, preselect) => handleOpenCustomizer(p as Product, size, preselect)}
+        onStart={(p, size) => handleOpenCustomizer(p as Product, size)}
       />
       <Benefits />
 
