@@ -63,6 +63,27 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------------
+    // Itens novos criados pelo painel (Cardápio > Adicionar item novo): qualquer visitante
+    // LÊ (aparecem no cardápio); só o admin cria, altera e apaga, com dados válidos.
+    // ---------------------------------------------------------------
+    match /customMenuItems/{itemId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && validCustomItem(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    function validCustomItem(d) {
+      return d.keys().hasOnly(['category', 'name', 'description', 'price', 'image', 'createdAt'])
+        && d.keys().hasAll(['category', 'name', 'description', 'price', 'image', 'createdAt'])
+        && d.category in ['premium', 'garrafa', 'barca_marmita', 'sobremesa']
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 80
+        && d.description is string && d.description.size() <= 300
+        && d.price is number && d.price > 0 && d.price <= 999
+        && d.image is string && d.image.size() < 500000
+        && d.createdAt is timestamp;
+    }
+
+    // ---------------------------------------------------------------
     // Contador do número do pedido. O site precisa LER e AVANÇAR em 1 dentro
     // da transação que grava o pedido; volta pro 1 depois do 100.
     // ---------------------------------------------------------------

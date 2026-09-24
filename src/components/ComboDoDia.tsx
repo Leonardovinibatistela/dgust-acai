@@ -33,7 +33,7 @@ export default function ComboDoDia({ combos, onAdd }: { combos: DailyCombo[]; on
     <section id="combo-do-dia" className="relative py-16 sm:py-24" aria-labelledby="combo-do-dia-title">
       <div className="pointer-events-none absolute left-[-10%] top-[10%] h-[420px] w-[420px] rounded-full bg-mango-500/10 blur-[130px]" aria-hidden="true" />
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-mango-300">Vale hoje</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-mango-300">Hoje no D&apos;Gust</p>
         <h2 id="combo-do-dia-title" className="font-display mt-2 text-4xl font-medium tracking-tight text-cream-50 sm:text-5xl">
           Combo do <span className="text-gradient italic">dia</span>
         </h2>

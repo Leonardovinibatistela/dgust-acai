@@ -27,6 +27,7 @@ import { registerOrder, type OrderLineItem, type OrderPayload } from "../lib/ord
 import { isFirebaseConfigured } from "../lib/firebase";
 import { isManualOpenActive, isWithinStoreHours, STORE_HOURS_LABEL } from "../lib/storeHours";
 import { isComboToday, useDailyCombos, type DailyCombo } from "../lib/dailyCombos";
+import { customItemToProduct, useCustomItems } from "../lib/customItems";
 
 const WHATSAPP_NUMBER = "5566996605529";
 const PICKUP_ADDRESS = "Rua 2, Matupá - MT, 78525-000";
@@ -56,6 +57,8 @@ interface Product {
   rating: string;
   reviewsCount: number;
   isFeatured: boolean;
+  /** item criado pelo painel há pouco tempo: mostra a etiqueta "Novo" */
+  isNew?: boolean;
 }
 
 interface Review {
@@ -164,6 +167,11 @@ function MenuProductCard({
             Mais Vendido 🔥
           </span>
         )}
+        {product.isNew && !product.isFeatured && (
+          <span className="absolute top-3 right-3 bg-[#F49D06] text-[#331135] text-[10px] px-2 py-1 rounded-full uppercase tracking-wide font-black shadow">
+            Novo
+          </span>
+        )}
 
         {/* Product name over the image, like the reference cardápio */}
         <div className="absolute bottom-0 left-0 right-0 p-3.5">
@@ -246,7 +254,15 @@ export default function Acaistore() {
   // Ajustes feitos pelo dono no painel (/admin): esgotado, preço, nome, fora do
   // site, pausa e abertura antecipada — chegam ao vivo do Firestore.
   const menuStatus = useMenuStatus();
-  const visibleProducts = useMemo(() => applyMenuStatus(productsList, menuStatus), [productsList, menuStatus]);
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("rating");
+  // Itens que o dono criou pelo painel (Cardápio > Adicionar item novo) entram na seção escolhida.
+  const customItems = useCustomItems();
+  const customProducts = useMemo<Product[]>(() => {
+    const term = search.trim().toLowerCase();
+    return (customItems ?? []).map(customItemToProduct).filter((p) => (activeCategory === "todos" || p.category === activeCategory) && (!term || p.name.toLowerCase().includes(term)));
+  }, [customItems, activeCategory, search]);
+  const visibleProducts = useMemo(() => applyMenuStatus([...productsList, ...customProducts], menuStatus), [productsList, customProducts, menuStatus]);
   const visibleFeatured = useMemo(() => applyMenuStatus(featuredProducts, menuStatus), [featuredProducts, menuStatus]);
   const visibleMonte = useMemo(() => (monteProduct ? applyMenuStatus([monteProduct], menuStatus)[0] ?? null : null), [monteProduct, menuStatus]);
 
@@ -270,8 +286,6 @@ export default function Acaistore() {
   // Versão curta pra faixa do topo (precisa caber em uma linha no celular).
   const blockedBanner = menuStatus.paused ? "Pedidos pausados no momento" : "Fechado agora · abrimos às 13h30";
   const [loadingProducts, setLoadingProducts] = useState(true);
-  const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState("rating");
 
   // Cart
   const [cart, setCart] = useState<CartItem[]>([]);
