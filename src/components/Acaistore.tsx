@@ -40,10 +40,10 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
 // Item do carrinho que veio do "Combo do dia" (productId = "combo:<id>"), não do cardápio.
 const isCombo = (item: { productId: string }) => item.productId.startsWith("combo:");
 
-// Taxa de entrega: o dono do Dgust ainda não passou o valor. Enquanto `fee` for null o site
-// não cobra nem inventa número: o total não inclui entrega e o cliente é avisado de que a taxa
-// é combinada pelo WhatsApp. Quando ele definir, troque aqui (ex.: fee: 6, freeFrom: 60 ou null).
-const DELIVERY: { fee: number | null; freeFrom: number | null } = { fee: null, freeFrom: null };
+// Taxa de entrega: R$ 7,00 (confirmada pelo dono). `freeFrom` = valor mínimo de pedido pra
+// entrega grátis (null = não tem). Se `fee` for null, o site não cobra nada e avisa que a taxa
+// é combinada pelo WhatsApp.
+const DELIVERY: { fee: number | null; freeFrom: number | null } = { fee: 7, freeFrom: null };
 const brl = (n: number) => `R$ ${n.toFixed(2).replace(".", ",")}`;
 
 interface Product {
