@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useScroll, useSpring } from "framer-motion";
 import { Menu, ShoppingBag, Sparkles, X } from "lucide-react";
 
-const links = [
+const baseLinks = [
   { label: "Início", href: "#inicio" },
   { label: "Mais pedidos", href: "#cardapio" },
   { label: "Monte seu Açaí", href: "#monte-seu-acai" },
@@ -36,12 +36,16 @@ export default function Navbar({
   cartCount,
   onCartClick,
   notice,
+  showCombo = false,
 }: {
   cartCount: number;
   onCartClick: () => void;
   /** Aviso fixo no topo (ex.: loja fechada ou pedidos pausados). */
   notice?: string;
+  /** Mostra o link "Combo do dia" (só quando há combo valendo hoje). */
+  showCombo?: boolean;
 }) {
+  const links = showCombo ? [baseLinks[0], { label: "Combo do dia", href: "#combo-do-dia" }, ...baseLinks.slice(1)] : baseLinks;
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const { scrollYProgress } = useScroll();

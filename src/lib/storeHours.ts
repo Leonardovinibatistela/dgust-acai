@@ -27,9 +27,32 @@ export function isWithinStoreHours(date: Date = new Date()): boolean {
   return minutes >= OPEN_MINUTES && minutes < closeMinutes(day);
 }
 
-// Usado pela "abertura antecipada" do painel: mesmo com o botão ligado, o site
-// nunca passa do horário oficial de fechar (ninguém precisa lembrar de desligar).
+// Usado só pelo ajuste antigo da abertura manual (sem horário de término): o site
+// nunca passava do horário oficial de fechar.
 export function isBeforeClosingTime(date: Date = new Date()): boolean {
   const { day, minutes } = localParts(date);
   return minutes < closeMinutes(day);
+}
+
+/** Dia da semana na loja (0 = domingo ... 6 = sábado), no fuso de Cuiabá — igual em qualquer aparelho. */
+export function storeWeekday(date: Date = new Date()): number {
+  return localParts(date).day;
+}
+
+// "Abrir agora" do painel: abre o site pra pedidos por algumas horas, a qualquer momento
+// (inclusive depois do horário de fechar), e fecha sozinho quando o tempo acaba — ninguém
+// precisa lembrar de desligar.
+export const MANUAL_OPEN_HOURS = 3;
+
+export type ManualOpen = { open: boolean; until: number | null };
+
+export function isManualOpenActive(state: ManualOpen, date: Date = new Date()): boolean {
+  if (!state.open) return false;
+  // Sem "until" = ajuste antigo (antes desta mudança): mantém a regra de nunca passar do fechamento.
+  return state.until !== null ? date.getTime() < state.until : isBeforeClosingTime(date);
+}
+
+/** Hora (HH:MM, fuso de Cuiabá) em que a abertura manual termina. */
+export function formatManualOpenUntil(until: number): string {
+  return new Date(until).toLocaleTimeString("pt-BR", { timeZone: STORE_TIME_ZONE, hour: "2-digit", minute: "2-digit" });
 }

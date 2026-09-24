@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { arrayRemove, arrayUnion, collection, deleteDoc, deleteField, doc, onSnapshot, serverTimestamp, setDoc } from "firebase/firestore";
 import { getDb, isFirebaseConfigured } from "./firebase";
+import { MANUAL_OPEN_HOURS, type ManualOpen } from "./storeHours";
 
 // Tudo que o painel controla (esgotado, preço, nome, descrição, excluir do
 // site, pausa de emergência, abertura antecipada) fica em UM documento por
@@ -92,8 +93,11 @@ export const clearProductPhoto = (productId: string) => deleteDoc(doc(getDb(), "
 export const subscribeEmergencyPause = (onUpdate: (paused: boolean) => void) => listen("emergencyPause", (d) => !!d?.paused, onUpdate);
 export const setEmergencyPause = (paused: boolean) => setDoc(statusRef("emergencyPause"), { paused }, { merge: true });
 
-export const subscribeManualOpen = (onUpdate: (open: boolean) => void) => listen("manualOpen", (d) => !!d?.open, onUpdate);
-export const setManualOpen = (open: boolean) => setDoc(statusRef("manualOpen"), { open }, { merge: true });
+export const subscribeManualOpen = (onUpdate: (state: ManualOpen) => void) =>
+  listen("manualOpen", (d) => ({ open: !!d?.open, until: typeof d?.until === "number" ? d.until : null }), onUpdate);
+/** Liga por MANUAL_OPEN_HOURS horas (guarda o horário de término) ou desliga. */
+export const setManualOpen = (open: boolean) =>
+  setDoc(statusRef("manualOpen"), open ? { open: true, until: Date.now() + MANUAL_OPEN_HOURS * 3600 * 1000 } : { open: false, until: null }, { merge: true });
 
 // --- hook único usado pelo site público e pelo painel ---
 export type MenuStatus = {
@@ -104,10 +108,10 @@ export type MenuStatus = {
   descriptions: Record<string, string>;
   photos: Record<string, string>;
   paused: boolean;
-  manualOpen: boolean;
+  manualOpen: ManualOpen;
 };
 
-const EMPTY_STATUS: MenuStatus = { soldOut: new Set(), hidden: new Set(), prices: {}, names: {}, descriptions: {}, photos: {}, paused: false, manualOpen: false };
+const EMPTY_STATUS: MenuStatus = { soldOut: new Set(), hidden: new Set(), prices: {}, names: {}, descriptions: {}, photos: {}, paused: false, manualOpen: { open: false, until: null } };
 
 export function useMenuStatus(): MenuStatus {
   const [status, setStatus] = useState<MenuStatus>(EMPTY_STATUS);

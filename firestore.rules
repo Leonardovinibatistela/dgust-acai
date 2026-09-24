@@ -42,6 +42,27 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------------
+    // Combo do dia: qualquer visitante LÊ (o site mostra os combos que valem hoje);
+    // só o admin cria, altera e apaga, e o combo precisa ter dados válidos.
+    // ---------------------------------------------------------------
+    match /dailyCombos/{comboId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && validCombo(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    function validCombo(d) {
+      return d.keys().hasOnly(['name', 'description', 'price', 'image', 'days', 'createdAt'])
+        && d.keys().hasAll(['name', 'description', 'price', 'image', 'days', 'createdAt'])
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 80
+        && d.description is string && d.description.size() <= 300
+        && d.price is number && d.price > 0 && d.price <= 999
+        && d.image is string && d.image.size() < 500000
+        && d.days is list && d.days.size() >= 1 && d.days.size() <= 7
+        && d.createdAt is timestamp;
+    }
+
+    // ---------------------------------------------------------------
     // Contador do número do pedido. O site precisa LER e AVANÇAR em 1 dentro
     // da transação que grava o pedido; volta pro 1 depois do 100.
     // ---------------------------------------------------------------

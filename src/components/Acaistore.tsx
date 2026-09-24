@@ -16,6 +16,7 @@ import Marquee from "./Marquee";
 import Features from "./Features";
 import ProductShowcase from "./ProductShowcase";
 import MonteSeuAcai from "./MonteSeuAcai";
+import ComboDoDia from "./ComboDoDia";
 import Benefits from "./Benefits";
 import FAQ from "./FAQ";
 import CTA from "./CTA";
@@ -24,7 +25,8 @@ import { SectionHeading } from "./Reveal";
 import { applyMenuStatus, itemId, sizeSlug, useMenuStatus } from "../lib/menuStatus";
 import { registerOrder, type OrderLineItem, type OrderPayload } from "../lib/orders";
 import { isFirebaseConfigured } from "../lib/firebase";
-import { isBeforeClosingTime, isWithinStoreHours, STORE_HOURS_LABEL } from "../lib/storeHours";
+import { isManualOpenActive, isWithinStoreHours, STORE_HOURS_LABEL } from "../lib/storeHours";
+import { isComboToday, useDailyCombos, type DailyCombo } from "../lib/dailyCombos";
 
 const WHATSAPP_NUMBER = "5566996605529";
 const PICKUP_ADDRESS = "Rua 2, Matupá - MT, 78525-000";
@@ -33,6 +35,9 @@ const PICKUP_MAPS_URL = "https://www.google.com/maps/search/?api=1&query=" + enc
 const PIX_KEY = "";
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
+
+// Item do carrinho que veio do "Combo do dia" (productId = "combo:<id>"), não do cardápio.
+const isCombo = (item: { productId: string }) => item.productId.startsWith("combo:");
 
 // Taxa de entrega: o dono do Dgust ainda não passou o valor. Enquanto `fee` for null o site
 // não cobra nem inventa número: o total não inclui entrega e o cliente é avisado de que a taxa
@@ -252,12 +257,16 @@ export default function Acaistore() {
     const timer = setInterval(() => setClock(new Date()), 30000);
     return () => clearInterval(timer);
   }, []);
-  const storeOpen = clock === null || isWithinStoreHours(clock) || (menuStatus.manualOpen && isBeforeClosingTime(clock));
+  const storeOpen = clock === null || isWithinStoreHours(clock) || isManualOpenActive(menuStatus.manualOpen, clock);
   // Sem Firebase configurado não há painel pra abrir/pausar: não bloqueia ninguém.
   const ordersBlocked = isFirebaseConfigured && (menuStatus.paused || !storeOpen);
   const blockedNotice = menuStatus.paused
     ? "Pedidos pausados no momento. Você pode ver o cardápio, mas o envio volta já já."
     : `Estamos fechados agora. Funcionamos ${STORE_HOURS_LABEL}.`;
+  // Combo do dia: só os combos que valem hoje (dia da semana no fuso de Cuiabá).
+  const dailyCombos = useDailyCombos();
+  const todayCombos = useMemo(() => (dailyCombos ?? []).filter((combo) => isComboToday(combo, clock ?? new Date())), [dailyCombos, clock]);
+
   // Versão curta pra faixa do topo (precisa caber em uma linha no celular).
   const blockedBanner = menuStatus.paused ? "Pedidos pausados no momento" : "Fechado agora · abrimos às 13h30";
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -483,6 +492,21 @@ export default function Acaistore() {
     setIsCustomizerOpen(false);
   };
 
+  // Combo do dia entra no carrinho como um item de preço fixo, sem acompanhamentos.
+  // A foto do combo não vai pro carrinho (fica pesada pra guardar no aparelho): usa a logo.
+  const handleAddCombo = (combo: DailyCombo) => {
+    const cartId = `combo:${combo.id}`;
+    const existing = cart.findIndex((item) => item.cartId === cartId);
+    const newCart = [...cart];
+    if (existing > -1) {
+      newCart[existing] = { ...newCart[existing], price: combo.price, quantity: newCart[existing].quantity + 1 };
+    } else {
+      newCart.push({ cartId, productId: cartId, name: combo.name, image: "/images/dgust-logo.jpg", size: "Combo do dia", price: combo.price, quantity: 1, freeToppings: [], paidToppings: [] });
+    }
+    saveCart(newCart);
+    setIsCartOpen(true);
+  };
+
   const handleUpdateCartQty = (cartId: string, delta: number) => {
     const updated = cart.map(item => {
       if (item.cartId === cartId) {
@@ -562,7 +586,9 @@ export default function Acaistore() {
     msg += `*CESTA DE COMPRAS:*\n\n`;
 
     cart.forEach((item, index) => {
-      msg += `*${index + 1}. ${item.name} (${item.size})* x${item.quantity}\n`;
+      msg += isCombo(item)
+        ? `*${index + 1}. Combo do dia: ${item.name}* x${item.quantity}\n`
+        : `*${index + 1}. ${item.name} (${item.size})* x${item.quantity}\n`;
       if (item.freeToppings.length > 0) {
         msg += ` - Grátis: ${item.freeToppings.join(", ")}\n`;
       }
@@ -597,7 +623,7 @@ export default function Acaistore() {
       const paidExtras = item.paidToppings.reduce((sum, t) => sum + t.price, 0);
       const basePrice = round2(item.price - paidExtras);
       return [
-        { id: parentId, name: `${item.name} - ${item.size}`, quantity: item.quantity, unitPrice: basePrice, lineTotal: round2(basePrice * item.quantity) },
+        { id: parentId, name: isCombo(item) ? `Combo do dia: ${item.name}` : `${item.name} - ${item.size}`, quantity: item.quantity, unitPrice: basePrice, lineTotal: round2(basePrice * item.quantity) },
         ...item.freeToppings.map((name) => ({ id: `topping:${sizeSlug(name)}`, name, quantity: item.quantity, unitPrice: 0, lineTotal: 0, parentId })),
         ...item.paidToppings.map((t) => ({ id: `topping:${sizeSlug(t.name)}`, name: t.name, quantity: item.quantity, unitPrice: t.price, lineTotal: round2(t.price * item.quantity), parentId })),
       ];
@@ -654,11 +680,12 @@ export default function Acaistore() {
 
   return (
     <div className="relative min-h-screen overflow-x-clip bg-night-1000 font-sans text-cream-100 antialiased selection:bg-acai-500 selection:text-white">
-      <Navbar cartCount={cartCount} onCartClick={() => setIsCartOpen(true)} notice={ordersBlocked ? blockedBanner : undefined} />
+      <Navbar cartCount={cartCount} onCartClick={() => setIsCartOpen(true)} notice={ordersBlocked ? blockedBanner : undefined} showCombo={todayCombos.length > 0} />
       {ordersBlocked && <div className="h-9" aria-hidden="true" />}
 
       <Hero />
       <Marquee />
+      <ComboDoDia combos={todayCombos} onAdd={handleAddCombo} />
       <Features />
       <ProductShowcase
         products={visibleFeatured}

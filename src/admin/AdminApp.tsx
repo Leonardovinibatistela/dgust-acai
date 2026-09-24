@@ -5,18 +5,20 @@ import { onAuthStateChanged, signInWithEmailAndPassword, signOut, type User } fr
 import { Clock, LogOut, Pause, Play } from "lucide-react";
 import { getAuthClient, isFirebaseConfigured } from "../lib/firebase";
 import { setEmergencyPause, setManualOpen, useMenuStatus } from "../lib/menuStatus";
-import { isBeforeClosingTime, isWithinStoreHours, STORE_HOURS_LABEL } from "../lib/storeHours";
+import { formatManualOpenUntil, isManualOpenActive, isWithinStoreHours, MANUAL_OPEN_HOURS, STORE_HOURS_LABEL } from "../lib/storeHours";
 import { subscribeToRecentOrders, type OrderRecord } from "./adminData";
 import { useOrderAlerts } from "./useOrderAlerts";
 import { useConfirm } from "./useConfirm";
 import OrdersPanel from "./OrdersPanel";
 import MenuPanel from "./MenuPanel";
+import CombosPanel from "./CombosPanel";
 import { btn, btnDanger, btnOn, btnPrimary, card, eyebrow, input } from "./ui";
 
-type Tab = "pedidos" | "cardapio";
+type Tab = "pedidos" | "cardapio" | "combos";
 const TABS: { id: Tab; label: string }[] = [
   { id: "pedidos", label: "Pedidos" },
   { id: "cardapio", label: "Cardápio" },
+  { id: "combos", label: "Combo do dia" },
 ];
 
 const screen = "grid min-h-screen place-items-center bg-night-1000 px-5 text-cream-100";
@@ -107,7 +109,8 @@ function Dashboard({ user }: { user: User }) {
     return () => clearInterval(timer);
   }, []);
 
-  const storeOpen = isWithinStoreHours(clock) || (status.manualOpen && isBeforeClosingTime(clock));
+  const manualActive = isManualOpenActive(status.manualOpen, clock);
+  const storeOpen = isWithinStoreHours(clock) || manualActive;
 
   const togglePause = async () => {
     const next = !status.paused;
@@ -120,7 +123,7 @@ function Dashboard({ user }: { user: User }) {
 
   const toggleManualOpen = () => {
     setTogglingOpen(true);
-    setManualOpen(!status.manualOpen)
+    setManualOpen(!manualActive)
       .catch(() => setNotice("Não foi possível atualizar a abertura. Tente de novo."))
       .finally(() => setTogglingOpen(false));
   };
@@ -169,12 +172,12 @@ function Dashboard({ user }: { user: User }) {
               type="button"
               onClick={toggleManualOpen}
               disabled={togglingOpen}
-              aria-pressed={status.manualOpen}
-              title="Abre o site para pedidos fora do horário. Fecha sozinho no horário oficial, não precisa lembrar de desligar."
-              className={status.manualOpen ? btnOn : btn}
+              aria-pressed={manualActive}
+              title={`Abre o site para pedidos por ${MANUAL_OPEN_HOURS} horas, mesmo fora do horário. Fecha sozinho depois, não precisa lembrar de desligar.`}
+              className={manualActive ? btnOn : btn}
             >
               <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-              {status.manualOpen ? "Aberto antecipado (ligado)" : "Abrir agora"}
+              {manualActive && status.manualOpen.until !== null ? `Aberto até ${formatManualOpenUntil(status.manualOpen.until)} (desligar)` : manualActive ? "Aberto agora (desligar)" : "Abrir agora"}
             </button>
             <button type="button" onClick={() => signOut(getAuthClient())} className={btn}>
               <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
@@ -198,7 +201,9 @@ function Dashboard({ user }: { user: User }) {
           ))}
         </div>
 
-        {tab === "pedidos" ? <OrdersPanel orders={orders} alerts={alerts} onError={setNotice} confirm={confirm} /> : <MenuPanel status={status} onError={setNotice} confirm={confirm} />}
+        {tab === "pedidos" && <OrdersPanel orders={orders} alerts={alerts} onError={setNotice} confirm={confirm} />}
+        {tab === "cardapio" && <MenuPanel status={status} onError={setNotice} confirm={confirm} />}
+        {tab === "combos" && <CombosPanel onError={setNotice} confirm={confirm} />}
       </div>
       {dialog}
     </div>
