@@ -107,7 +107,7 @@ export default function Hero() {
               className="reveal-in max-w-lg text-base leading-relaxed text-cream-100/65 sm:text-lg"
               style={{ animationDelay: "0.3s" }}
             >
-              Frutas selecionadas, receita artesanal e aquele congelamento perfeito que só a Dgust
+              Frutas selecionadas, receita artesanal e aquele congelamento perfeito que só a D&apos;Gust
               tem. Monte seu açaí do seu jeito e receba geladinho onde você estiver.
             </p>
 
@@ -145,7 +145,7 @@ export default function Hero() {
               <div className="ring-glow relative h-full w-full overflow-hidden rounded-full">
                 <img
                   src="/images/hero-bowl.jpg"
-                  alt="Açaí Dgust com banana, morangos, granola e chocolate"
+                  alt="Açaí D'Gust com banana, morangos, granola e chocolate"
                   className="h-full w-full scale-[1.06] object-cover"
                   loading="eager"
                 />

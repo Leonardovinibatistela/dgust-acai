@@ -14,17 +14,17 @@ const baseLinks = [
 
 export function Logo({ compact = false }: { compact?: boolean }) {
   return (
-    <a href="#inicio" className="group flex items-center gap-2.5" aria-label="Dgust Açai — início">
+    <a href="#inicio" className="group flex items-center gap-2.5" aria-label="D'Gust Açaí — início">
       <span className="relative flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl shadow-lg shadow-acai-600/40 transition-transform duration-500 group-hover:scale-105">
-        <img src="/images/dgust-logo.jpg" alt="Dgust Açaí" className="h-full w-full object-cover" />
+        <img src="/images/dgust-logo.jpg" alt="D'Gust Açaí" className="h-full w-full object-cover" />
       </span>
       {!compact && (
         <span className="flex flex-col leading-none">
           <span className="font-display text-xl font-semibold tracking-tight text-cream-50">
-            Dgust
+            D&apos;Gust
           </span>
           <span className="text-[10px] font-bold uppercase tracking-[0.32em] text-acai-300">
-            Açai
+            Açaí
           </span>
         </span>
       )}

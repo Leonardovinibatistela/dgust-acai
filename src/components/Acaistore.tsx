@@ -378,7 +378,7 @@ export default function Acaistore() {
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  const faqWhatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent("Olá! Tenho uma dúvida sobre o Dgust Açaí.")}`;
+  const faqWhatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent("Olá! Tenho uma dúvida sobre o D'Gust Açaí.")}`;
 
   // Read cart
   useEffect(() => {

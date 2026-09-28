@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 // O painel é só do dono: não entra no Google.
 export const metadata: Metadata = {
-  title: "Painel | Dgust Açaí",
+  title: "Painel | D'Gust Açaí",
   robots: { index: false, follow: false },
 };
 

@@ -3,6 +3,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, BadgeCheck, Clock, Wallet } from "lucide-react";
 import { Reveal } from "./Reveal";
+import { STORE_HOURS_LABEL } from "../lib/storeHours";
 
 export default function CTA() {
   const reduce = useReducedMotion();
@@ -57,7 +58,7 @@ export default function CTA() {
         <Reveal delay={0.16}>
           <p className="mt-6 max-w-xl text-base leading-relaxed text-cream-100/70 sm:text-lg">
             Não deixe para amanhã a sobremesa que você pode estar comendo em meia hora. Monte seu
-            açaí e Dgust hoje mesmo.
+            açaí e D&apos;Gust hoje mesmo.
           </p>
         </Reveal>
 
@@ -81,11 +82,11 @@ export default function CTA() {
             </span>
             <span className="flex items-center gap-2">
               <Wallet className="h-4 w-4 text-mango-400" />
-              Pague online ou na entrega
+              Pix ou na entrega
             </span>
             <span className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-acai-300" />
-              Terça a domingo, 13:30–22:00
+              {STORE_HOURS_LABEL}
             </span>
           </div>
         </Reveal>

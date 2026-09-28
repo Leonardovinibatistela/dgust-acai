@@ -63,7 +63,7 @@ function LoginScreen() {
   return (
     <div className={screen}>
       <form onSubmit={handleSubmit} className={`${card} w-full max-w-sm`}>
-        <p className={eyebrow}>Dgust Açaí</p>
+        <p className={eyebrow}>D&apos;Gust Açaí</p>
         <h1 className="font-display mt-1 text-3xl font-semibold text-cream-50">Painel de pedidos</h1>
         <div className="mt-6 space-y-3">
           <label className="sr-only" htmlFor="admin-email">
@@ -149,7 +149,7 @@ function Dashboard({ user }: { user: User }) {
       <div className="mx-auto max-w-5xl">
         <header className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className={eyebrow}>Dgust Açaí · Painel</p>
+            <p className={eyebrow}>D&apos;Gust Açaí · Painel</p>
             <h1 className="font-display mt-1 text-3xl font-semibold text-cream-50">Olá, {user.email}</h1>
             <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-cream-100/75">
               <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${statusStyle}`}>{statusLabel}</span>

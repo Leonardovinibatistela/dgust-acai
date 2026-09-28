@@ -1,24 +1,24 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, MapPin, PackageCheck, Smartphone, Trophy } from "lucide-react";
+import { ArrowRight, MessageCircle, PackageCheck, ShieldCheck, Smartphone } from "lucide-react";
 import { Reveal, SectionHeading, StaggerGroup, StaggerItem } from "./Reveal";
 
 const benefits = [
   {
     icon: Smartphone,
-    title: "Peça em 3 toques",
-    text: "App ou WhatsApp, sem cadastro chato. Seu histórico de pedidos fica salvo para repetir em segundos.",
+    title: "Peça sem complicação",
+    text: "Monte seu açaí em poucos toques e envie o pedido direto pelo nosso WhatsApp — sem baixar aplicativo, sem cadastro.",
   },
   {
-    icon: MapPin,
-    title: "Acompanhe em tempo real",
-    text: "Do preparo à entrega, você vê cada etapa — e sabe exatamente quando ouvir a campainha.",
+    icon: MessageCircle,
+    title: "Direto com a gente",
+    text: "Seu pedido cai direto no nosso WhatsApp assim que você confirma. Qualquer dúvida, é só chamar por lá.",
   },
   {
     icon: PackageCheck,
     title: "Chega impecável",
-    text: "Embalagem térmica premium que mantém a textura cremosa e os toppings intactos até a sua porta.",
+    text: "Embalagem térmica que mantém a textura cremosa e os toppings intactos até a sua porta.",
   },
 ];
 
@@ -40,38 +40,43 @@ export default function Benefits() {
             <div className="relative overflow-hidden rounded-[2.2rem] border border-white/10 shadow-2xl shadow-black/50">
               <img
                 src="/images/lifestyle.jpg"
-                alt="Cliente sorrindo com um açaí Dgust em mãos"
+                alt="Cliente sorrindo com um açaí D'Gust em mãos"
                 loading="lazy"
                 className="aspect-[4/5] w-full object-cover sm:aspect-[5/5]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-night-1000/70 via-transparent to-night-1000/20" />
             </div>
 
-            {/* floating stat card */}
+            {/* floating chip: no delivery-app commission */}
             <motion.div
               animate={reduce ? {} : { y: [0, -12, 0] }}
               transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
-              className="glass-strong absolute -right-3 top-8 rounded-3xl p-5 shadow-2xl shadow-black/40 sm:-right-6"
+              className="glass-strong absolute -right-3 top-8 flex items-center gap-3 rounded-2xl px-4 py-3 shadow-2xl shadow-black/40 sm:-right-6"
             >
-              <span className="font-display block text-4xl font-semibold text-gradient">98%</span>
-              <span className="mt-1 block max-w-[130px] text-xs leading-snug text-cream-100/65">
-                dos clientes voltam a pedir em até 30 dias
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white">
+                <ShieldCheck className="h-4 w-4" />
+              </span>
+              <span className="text-xs font-semibold leading-tight text-cream-100">
+                Sem comissão de app
+                <span className="block text-[10px] font-normal text-cream-100/55">
+                  preço direto com a gente
+                </span>
               </span>
             </motion.div>
 
-            {/* floating rating chip */}
+            {/* floating chip: whatsapp ordering */}
             <motion.div
               animate={reduce ? {} : { y: [0, 10, 0] }}
               transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
               className="glass-strong absolute -left-3 bottom-10 flex items-center gap-3 rounded-2xl px-4 py-3 shadow-xl shadow-black/40 sm:-left-8"
             >
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-mango-400 to-orange-500 text-white">
-                <Trophy className="h-4 w-4" />
+                <MessageCircle className="h-4 w-4" />
               </span>
               <span className="text-xs font-semibold leading-tight text-cream-100">
-                Top 1 em satisfação
+                Pedido pelo WhatsApp
                 <span className="block text-[10px] font-normal text-cream-100/55">
-                  entre açaís da região
+                  sem cadastro, sem app
                 </span>
               </span>
             </motion.div>
@@ -82,7 +87,7 @@ export default function Benefits() {
         <div className="order-1 lg:order-2">
           <SectionHeading
             align="left"
-            eyebrow="A experiência Dgust"
+            eyebrow="A experiência D'Gust"
             title={
               <>
                 Sobremesa perfeita, do primeiro clique à{" "}

@@ -3,24 +3,6 @@
 import { Clock, MapPin, Phone } from "lucide-react";
 import { Logo } from "./Navbar";
 
-function InstagramIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-      <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-      <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-    </svg>
-  );
-}
-
-function FacebookIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-    </svg>
-  );
-}
-
 const columns = [
   {
     title: "Cardápio",
@@ -30,15 +12,15 @@ const columns = [
     ],
   },
   {
-    title: "A Dgust",
+    title: "A D'Gust",
     links: [
-      { label: "Por que Dgust", href: "#porque" },
+      { label: "Por que D'Gust", href: "#porque" },
       { label: "Dúvidas frequentes", href: "#faq" },
     ],
   },
 ];
 
-const payments = ["PIX", "Visa", "Mastercard", "Elo", "Dinheiro"];
+const payments = ["Pix", "Cartão", "Dinheiro"];
 
 export default function Footer({
   phone,
@@ -65,21 +47,6 @@ export default function Footer({
               Açaí artesanal, feito na hora e entregue geladinho. A sobremesa que virou paixão por
               aqui.
             </p>
-            <div className="flex gap-2.5">
-              {[
-                { icon: InstagramIcon, label: "Instagram do Dgust Açai" },
-                { icon: FacebookIcon, label: "Facebook do Dgust Açai" },
-              ].map((s) => (
-                <a
-                  key={s.label}
-                  href="#"
-                  aria-label={s.label}
-                  className="flex h-10 w-10 items-center justify-center rounded-full glass text-cream-100/70 transition-all duration-300 hover:-translate-y-1 hover:border-acai-400/40 hover:text-cream-50"
-                >
-                  <s.icon className="h-[18px] w-[18px]" />
-                </a>
-              ))}
-            </div>
           </div>
 
           {/* link columns */}
@@ -132,7 +99,7 @@ export default function Footer({
         {/* bottom bar */}
         <div className="mt-14 flex flex-col items-center justify-between gap-6 border-t border-white/8 pt-8 sm:flex-row">
           <p className="text-xs text-cream-100/40">
-            © {new Date().getFullYear()} Dgust Açai. Desenvolvido com carinho para os amantes de
+            © {new Date().getFullYear()} D&apos;Gust Açaí. Desenvolvido com carinho para os amantes de
             açaí.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-2">

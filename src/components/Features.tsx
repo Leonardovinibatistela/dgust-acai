@@ -33,7 +33,7 @@ export default function Features() {
       <div className="pointer-events-none absolute left-1/2 top-0 h-px w-[min(72rem,90%)] -translate-x-1/2 bg-gradient-to-r from-transparent via-acai-500/30 to-transparent" />
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
         <SectionHeading
-          eyebrow="Por que Dgust"
+          eyebrow="Por que D'Gust"
           title={
             <>
               Não é só açaí. É <span className="text-gradient italic">experiência</span> em cada
