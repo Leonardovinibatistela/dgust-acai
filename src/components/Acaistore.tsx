@@ -28,6 +28,7 @@ import { isFirebaseConfigured } from "../lib/firebase";
 import { isManualOpenActive, isWithinStoreHours, STORE_HOURS_LABEL } from "../lib/storeHours";
 import { isComboToday, useDailyCombos, type DailyCombo } from "../lib/dailyCombos";
 import { customItemToProduct, useCustomItems } from "../lib/customItems";
+import { useDeliveryZones } from "../lib/deliveryZones";
 
 const WHATSAPP_NUMBER = "5566996605529";
 const PICKUP_ADDRESS = "Rua 2, Matupá - MT, 78525-000";
@@ -320,6 +321,12 @@ export default function Acaistore() {
   const [deliveryMethod, setDeliveryMethod] = useState("delivery"); // "delivery" | "pickup"
   const [customerAddress, setCustomerAddress] = useState("");
   const [customerCity, setCustomerCity] = useState("");
+  // Taxa de entrega por bairro: enquanto não houver bairro cadastrado no painel, usa a taxa
+  // única (DELIVERY.fee) como hoje. Com bairros cadastrados, o cliente escolhe um na lista.
+  const deliveryZones = useDeliveryZones();
+  const hasDeliveryZones = (deliveryZones?.length ?? 0) > 0;
+  const [selectedZoneId, setSelectedZoneId] = useState("");
+  const selectedZone = (deliveryZones ?? []).find((z) => z.id === selectedZoneId) ?? null;
   const [paymentMethod, setPaymentMethod] = useState("pix"); // "pix" | "card" | "cash"
   const [changeFor, setChangeFor] = useState("");
   const [orderNotes, setOrderNotes] = useState("");
@@ -542,7 +549,13 @@ export default function Acaistore() {
   };
 
   const getDeliveryFee = () => {
-    if (deliveryMethod === "pickup" || DELIVERY.fee === null) return 0;
+    if (deliveryMethod === "pickup") return 0;
+    if (hasDeliveryZones) {
+      if (!selectedZone) return 0;
+      if (DELIVERY.freeFrom !== null && getCartSubtotal() >= DELIVERY.freeFrom) return 0;
+      return selectedZone.fee;
+    }
+    if (DELIVERY.fee === null) return 0;
     if (DELIVERY.freeFrom !== null && getCartSubtotal() >= DELIVERY.freeFrom) return 0;
     return DELIVERY.fee;
   };
@@ -615,7 +628,7 @@ export default function Acaistore() {
     msg += `-------------------------------------------\n`;
     msg += `*Subtotal:* R$ ${getCartSubtotal().toFixed(2)}\n`;
     if (deliveryMethod === "delivery") {
-      msg += `*Taxa de entrega:* ${DELIVERY.fee === null ? "a combinar" : getDeliveryFee() === 0 ? "GRÁTIS" : `R$ ${getDeliveryFee().toFixed(2)}`}\n`;
+      msg += `*Taxa de entrega:* ${!hasDeliveryZones && DELIVERY.fee === null ? "a combinar" : getDeliveryFee() === 0 ? "GRÁTIS" : `R$ ${getDeliveryFee().toFixed(2)}`}\n`;
     }
     msg += `*TOTAL GERAL:* R$ ${getCartTotal().toFixed(2)}\n`;
     msg += `-------------------------------------------\n`;
@@ -1165,11 +1178,13 @@ export default function Acaistore() {
                   <div className="flex justify-between">
                     <span>Taxa de Entrega:</span>
                     <span className="font-bold text-gray-700">
-                      {DELIVERY.fee === null
-                        ? "A combinar no WhatsApp"
-                        : DELIVERY.freeFrom !== null
-                          ? `${brl(DELIVERY.fee)} (grátis acima de ${brl(DELIVERY.freeFrom)})`
-                          : brl(DELIVERY.fee)}
+                      {hasDeliveryZones
+                        ? "Varia conforme o bairro"
+                        : DELIVERY.fee === null
+                          ? "A combinar no WhatsApp"
+                          : DELIVERY.freeFrom !== null
+                            ? `${brl(DELIVERY.fee)} (grátis acima de ${brl(DELIVERY.freeFrom)})`
+                            : brl(DELIVERY.fee)}
                     </span>
                   </div>
                 </div>
@@ -1304,7 +1319,11 @@ export default function Acaistore() {
                         : "bg-white text-gray-500 border border-gray-200"
                     }`}
                   >
-                    {DELIVERY.fee === null ? "Entrega (taxa a combinar)" : `Entrega (+${brl(DELIVERY.fee)})`}
+                    {hasDeliveryZones
+                      ? "Entrega (taxa por bairro)"
+                      : DELIVERY.fee === null
+                        ? "Entrega (taxa a combinar)"
+                        : `Entrega (+${brl(DELIVERY.fee)})`}
                   </button>
                 </div>
 
@@ -1336,14 +1355,40 @@ export default function Acaistore() {
                       onChange={(e) => setCustomerAddress(e.target.value)}
                       className="w-full p-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#581C5C] text-xs bg-white text-[#2D0B2E] placeholder:text-gray-400 focus:outline-none"
                     />
-                    <input
-                      type="text"
-                      required
-                      placeholder="Bairro / Cidade"
-                      value={customerCity}
-                      onChange={(e) => setCustomerCity(e.target.value)}
-                      className="w-full p-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#581C5C] text-xs bg-white text-[#2D0B2E] placeholder:text-gray-400 focus:outline-none"
-                    />
+                    {hasDeliveryZones ? (
+                      <>
+                        <label className="sr-only" htmlFor="checkout-bairro">
+                          Bairro
+                        </label>
+                        <select
+                          id="checkout-bairro"
+                          required
+                          value={selectedZoneId}
+                          onChange={(e) => {
+                            const zone = (deliveryZones ?? []).find((z) => z.id === e.target.value);
+                            setSelectedZoneId(e.target.value);
+                            setCustomerCity(zone ? zone.name : "");
+                          }}
+                          className="w-full p-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#581C5C] text-xs bg-white text-[#2D0B2E] focus:outline-none"
+                        >
+                          <option value="">Selecione seu bairro</option>
+                          {(deliveryZones ?? []).map((zone) => (
+                            <option key={zone.id} value={zone.id}>
+                              {zone.name} · {brl(zone.fee)}
+                            </option>
+                          ))}
+                        </select>
+                      </>
+                    ) : (
+                      <input
+                        type="text"
+                        required
+                        placeholder="Bairro / Cidade"
+                        value={customerCity}
+                        onChange={(e) => setCustomerCity(e.target.value)}
+                        className="w-full p-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#581C5C] text-xs bg-white text-[#2D0B2E] placeholder:text-gray-400 focus:outline-none"
+                      />
+                    )}
                   </div>
                 )}
               </div>

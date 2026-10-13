@@ -1,14 +1,14 @@
 "use client";
 
-import { Leaf, SlidersHorizontal, Timer } from "lucide-react";
+import { Leaf, Snowflake, SlidersHorizontal } from "lucide-react";
 import { SectionHeading, StaggerGroup, StaggerItem } from "./Reveal";
 
 const features = [
   {
-    icon: Timer,
-    title: "Entrega relâmpago",
+    icon: Snowflake,
+    title: "Sempre geladinho",
     description:
-      "Do nosso freezer à sua porta em até 30 minutos, com embalagem térmica que conserva o geladinho da primeira à última colherada.",
+      "Embalagem térmica cuidadosa que conserva a textura cremosa e os toppings intactos da primeira à última colherada.",
     accent: "from-violet-500 to-indigo-500",
   },
   {

@@ -84,6 +84,23 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------------
+    // Taxa de entrega por bairro: qualquer visitante LÊ (o checkout mostra a lista);
+    // só o admin cria, altera e apaga, com dados válidos.
+    // ---------------------------------------------------------------
+    match /deliveryZones/{zoneId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && validZone(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    function validZone(d) {
+      return d.keys().hasOnly(['name', 'fee'])
+        && d.keys().hasAll(['name', 'fee'])
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 60
+        && d.fee is number && d.fee >= 0 && d.fee <= 999;
+    }
+
+    // ---------------------------------------------------------------
     // Contador do número do pedido. O site precisa LER e AVANÇAR em 1 dentro
     // da transação que grava o pedido; volta pro 1 depois do 100.
     // ---------------------------------------------------------------
@@ -124,8 +141,8 @@ service cloud.firestore {
         && d.customerPhone is string && d.customerPhone.size() > 0 && d.customerPhone.size() <= 30
         && d.items is list && d.items.size() >= 1 && d.items.size() <= 80
         && d.subtotal is number && d.subtotal >= 0 && d.subtotal <= 3000
-        && d.deliveryFee is number && d.deliveryFee >= 0 && d.deliveryFee <= 30
-        && d.total is number && d.total >= 0 && d.total <= 3030
+        && d.deliveryFee is number && d.deliveryFee >= 0 && d.deliveryFee <= 100
+        && d.total is number && d.total >= 0 && d.total <= 3100
         && math.abs(d.total - (d.subtotal + d.deliveryFee)) < 0.01
         && d.deliveryType in ['retirada', 'entrega']
         && d.location is string && d.location.size() <= 200

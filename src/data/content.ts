@@ -9,7 +9,7 @@ export const faqs: Faq[] = [
   {
     question: "Em quanto tempo meu pedido chega?",
     answer:
-      "Nossa média é de 25 minutos, e o prazo máximo prometido é de 30 minutos em horários de pico. Cada pedido sai da nossa cozinha em embalagem térmica que conserva o açaí geladinho do jeito que ele merece.",
+      "O tempo varia conforme a distância e a quantidade de pedidos no momento. Assim que você manda a mensagem no WhatsApp, a gente já confirma um prazo com você. Cada pedido sai da nossa cozinha em embalagem térmica que conserva o açaí geladinho do jeito que ele merece.",
   },
   {
     question: "O açaí é 100% natural mesmo?",
@@ -24,7 +24,7 @@ export const faqs: Faq[] = [
 
 export const marqueeItems = [
   "Açaí 100% natural",
-  "Entrega em até 30 min",
+  "Sempre geladinho",
   "Granola artesanal",
   "Frutas fresquinhas todo dia",
   "Monte do seu jeito",

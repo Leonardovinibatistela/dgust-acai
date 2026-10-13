@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, BadgeCheck, Clock, Wallet } from "lucide-react";
+import { ArrowRight, BadgeCheck, Clock, Sparkles, Wallet } from "lucide-react";
 import { Reveal } from "./Reveal";
 import { STORE_HOURS_LABEL } from "../lib/storeHours";
 
@@ -44,8 +44,8 @@ export default function CTA() {
       <div className="relative mx-auto flex max-w-4xl flex-col items-center px-5 text-center sm:px-8">
         <Reveal>
           <span className="glass inline-flex items-center gap-2 rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.24em] text-mango-300">
-            <Clock className="h-3.5 w-3.5" />
-            Entrega em até 30 minutos
+            <Sparkles className="h-3.5 w-3.5" />
+            Feito na hora, do seu jeito
           </span>
         </Reveal>
 
@@ -57,7 +57,7 @@ export default function CTA() {
 
         <Reveal delay={0.16}>
           <p className="mt-6 max-w-xl text-base leading-relaxed text-cream-100/70 sm:text-lg">
-            Não deixe para amanhã a sobremesa que você pode estar comendo em meia hora. Monte seu
+            Não deixe para amanhã a sobremesa que você pode pedir agora mesmo. Monte seu
             açaí e D&apos;Gust hoje mesmo.
           </p>
         </Reveal>

@@ -19,7 +19,15 @@ import type { ConfirmFn } from "./useConfirm";
 import { brl, btn, btnDanger, card, eyebrow, input } from "./ui";
 
 const PAYMENT_LABELS: Record<string, string> = { pix: "Pix", cartao: "Cartão", dinheiro: "Dinheiro" };
+const PAYMENT_METHODS = ["pix", "cartao", "dinheiro"] as const;
 const NEW_ORDER_WINDOW_MS = 3 * 60 * 1000;
+
+function paymentBreakdown(orders: OrderRecord[]) {
+  return PAYMENT_METHODS.map((id) => {
+    const matching = orders.filter((o) => o.paymentMethod === id);
+    return { id, label: PAYMENT_LABELS[id], count: matching.length, revenue: sumRevenue(matching) };
+  });
+}
 
 const toDateInputValue = (date: Date) => new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 
@@ -163,6 +171,11 @@ export default function OrdersPanel({ orders, alerts, onError, confirm }: { orde
     { label: "Esta semana", items: bestSellers(weekOrders, 3) },
     { label: "Este mês", items: bestSellers(monthOrders, 3) },
   ];
+  const paymentByPeriod = [
+    { label: "Hoje", items: paymentBreakdown(todayOrders) },
+    { label: "Esta semana", items: paymentBreakdown(weekOrders) },
+    { label: "Este mês", items: paymentBreakdown(monthOrders) },
+  ];
 
   const handleDelete = async (order: OrderRecord) => {
     if (!(await confirm(`Apagar o Pedido #${order.orderNumber}? Essa ação não pode ser desfeita.`, { confirmLabel: "Apagar pedido", danger: true }))) return;
@@ -261,6 +274,38 @@ export default function OrdersPanel({ orders, alerts, onError, confirm }: { orde
             ))}
           </div>
         )}
+      </section>
+
+      <section aria-label="Formas de pagamento">
+        <p className={eyebrow}>Ranking</p>
+        <h2 className="font-display mt-1 text-2xl font-semibold text-cream-50">Quanto veio de cada forma de pagamento</h2>
+        <div className="mt-4 grid gap-4 lg:grid-cols-3">
+          {paymentByPeriod.map(({ label, items }) => {
+            const total = items.reduce((sum, item) => sum + item.count, 0);
+            return (
+              <div key={label} className={card}>
+                <p className={eyebrow}>{label}</p>
+                {total === 0 ? (
+                  <p className="mt-3 text-sm text-cream-100/70">Sem pedidos ainda.</p>
+                ) : (
+                  <ul className="mt-4 space-y-2.5">
+                    {items.map((item) => (
+                      <li key={item.id} className="flex items-center justify-between gap-3">
+                        <span className="text-sm font-semibold text-cream-50">{item.label}</span>
+                        <span className="flex items-baseline gap-2 text-sm">
+                          <span className="font-semibold text-mango-300">
+                            {item.count} pedido{item.count === 1 ? "" : "s"}
+                          </span>
+                          <span className="text-cream-100/60">{brl(item.revenue)}</span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </section>
 
       <section aria-label="Mais vendidos">

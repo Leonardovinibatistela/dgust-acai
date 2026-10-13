@@ -12,13 +12,15 @@ import { useConfirm } from "./useConfirm";
 import OrdersPanel from "./OrdersPanel";
 import MenuPanel from "./MenuPanel";
 import CombosPanel from "./CombosPanel";
+import ZonesPanel from "./ZonesPanel";
 import { btn, btnDanger, btnOn, btnPrimary, card, eyebrow, input } from "./ui";
 
-type Tab = "pedidos" | "cardapio" | "combos";
+type Tab = "pedidos" | "cardapio" | "combos" | "entrega";
 const TABS: { id: Tab; label: string }[] = [
   { id: "pedidos", label: "Pedidos" },
   { id: "cardapio", label: "Cardápio" },
   { id: "combos", label: "Combo do dia" },
+  { id: "entrega", label: "Entrega" },
 ];
 
 const screen = "grid min-h-screen place-items-center bg-night-1000 px-5 text-cream-100";
@@ -204,6 +206,7 @@ function Dashboard({ user }: { user: User }) {
         {tab === "pedidos" && <OrdersPanel orders={orders} alerts={alerts} onError={setNotice} confirm={confirm} />}
         {tab === "cardapio" && <MenuPanel status={status} onError={setNotice} confirm={confirm} />}
         {tab === "combos" && <CombosPanel onError={setNotice} confirm={confirm} />}
+        {tab === "entrega" && <ZonesPanel onError={setNotice} confirm={confirm} />}
       </div>
       {dialog}
     </div>

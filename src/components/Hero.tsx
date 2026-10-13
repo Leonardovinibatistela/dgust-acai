@@ -36,7 +36,7 @@ function RotatingRing() {
         </defs>
         <text className="fill-cream-100/50 text-[8.2px] font-semibold uppercase" style={{ letterSpacing: "2.6px" }}>
           <textPath href="#dgust-circle">
-            açaí 100% natural • entrega em 30 min • feito na hora •
+            açaí 100% natural • feito na hora • sempre geladinho •
           </textPath>
         </text>
       </svg>
@@ -91,7 +91,7 @@ export default function Hero() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-mango-400 opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-mango-400" />
               </span>
-              Açaí artesanal · entrega em até 30 min
+              Açaí artesanal · feito na hora
             </span>
 
             <h1
@@ -154,7 +154,7 @@ export default function Hero() {
               </div>
 
               {/* floating chips */}
-              <FloatChip className="hidden sm:block sm:-left-10 top-[16%]" delay={1.0} label="25 min em média">
+              <FloatChip className="hidden sm:block sm:-left-10 top-[16%]" delay={1.0} label="Feito na hora">
                 <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-acai-500 to-fuchsia-500 text-white">
                   <Timer className="h-4 w-4" />
                 </span>
