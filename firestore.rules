@@ -6,12 +6,57 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ---------------------------------------------------------------
-    // ADMIN: só quem entra com um destes e-mails (Authentication) mexe no painel.
-    // Pra liberar mais alguém: cadastre em Authentication > Usuários e some o e-mail na lista.
+    // ADMIN: mexe no painel o RESPONSÁVEL (e-mail fixo abaixo) e as contas que ele autorizou
+    // na aba "Acessos" do painel (ficam na coleção admins, uma por conta).
+    // Se trocar o e-mail do responsável aqui, troque também em src/lib/access.ts.
     // ---------------------------------------------------------------
-    function isAdmin() {
+    function isSuperAdmin() {
       return request.auth != null
         && request.auth.token.email in ['lv6696184@gmail.com'];
+    }
+
+    function isApprovedAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function isAdmin() {
+      return isSuperAdmin() || isApprovedAdmin();
+    }
+
+    // ---------------------------------------------------------------
+    // Contas autorizadas: a própria pessoa lê o seu documento (pra saber se já foi liberada),
+    // o responsável lê todos. SÓ o responsável cria, altera ou apaga.
+    // ---------------------------------------------------------------
+    match /admins/{uid} {
+      allow read: if request.auth != null && (request.auth.uid == uid || isSuperAdmin());
+      allow create, update: if isSuperAdmin()
+        && request.resource.data.keys().hasOnly(['email', 'name', 'approvedAt'])
+        && request.resource.data.email is string
+        && request.resource.data.name is string;
+      allow delete: if isSuperAdmin();
+    }
+
+    // ---------------------------------------------------------------
+    // Pedidos de acesso: quem criou conta pede o próprio acesso, mas só com o e-mail
+    // CONFIRMADO (assim ninguém se passa por outra pessoa) e sempre como "pending".
+    // Só o responsável autoriza, nega ou apaga. Cada pessoa lê só o próprio pedido.
+    // ---------------------------------------------------------------
+    match /accessRequests/{uid} {
+      allow read: if request.auth != null && (request.auth.uid == uid || isSuperAdmin());
+      allow create: if (
+          request.auth != null
+          && request.auth.uid == uid
+          && request.auth.token.email_verified == true
+          && request.resource.data.keys().hasOnly(['email', 'name', 'status', 'createdAt'])
+          && request.resource.data.email == request.auth.token.email
+          && request.resource.data.name is string
+          && request.resource.data.name.size() > 0
+          && request.resource.data.name.size() <= 80
+          && request.resource.data.status == 'pending'
+          && request.resource.data.createdAt == request.time
+        ) || isSuperAdmin();
+      allow update, delete: if isSuperAdmin();
     }
 
     // ---------------------------------------------------------------

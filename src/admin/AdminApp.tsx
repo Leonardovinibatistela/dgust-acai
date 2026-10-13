@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut, type User } from "firebase/auth";
+import { onAuthStateChanged, signOut, type User } from "firebase/auth";
 import { Clock, LogOut, Pause, Play } from "lucide-react";
 import { getAuthClient, isFirebaseConfigured } from "../lib/firebase";
 import { setEmergencyPause, setManualOpen, useMenuStatus } from "../lib/menuStatus";
@@ -13,9 +13,12 @@ import OrdersPanel from "./OrdersPanel";
 import MenuPanel from "./MenuPanel";
 import CombosPanel from "./CombosPanel";
 import ZonesPanel from "./ZonesPanel";
-import { btn, btnDanger, btnOn, btnPrimary, card, eyebrow, input } from "./ui";
+import AccessPanel from "./AccessPanel";
+import { AccessWaiting, AuthScreen } from "./AuthScreens";
+import { useAccess, useAccessLists } from "../lib/access";
+import { btn, btnDanger, btnOn, card, eyebrow } from "./ui";
 
-type Tab = "pedidos" | "cardapio" | "combos" | "entrega";
+type Tab = "pedidos" | "cardapio" | "combos" | "entrega" | "acessos";
 const TABS: { id: Tab; label: string }[] = [
   { id: "pedidos", label: "Pedidos" },
   { id: "cardapio", label: "Cardápio" },
@@ -44,53 +47,19 @@ export default function AdminApp() {
     );
   }
   if (user === undefined) return <div className={`${screen} text-cream-100/75`}>Carregando…</div>;
-  return user ? <Dashboard user={user} /> : <LoginScreen />;
+  return user ? <AccessGate user={user} /> : <AuthScreen />;
 }
 
-function LoginScreen() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    setError("");
-    setLoading(true);
-    signInWithEmailAndPassword(getAuthClient(), email, password)
-      .catch(() => setError("E-mail ou senha incorretos."))
-      .finally(() => setLoading(false));
-  };
-
-  return (
-    <div className={screen}>
-      <form onSubmit={handleSubmit} className={`${card} w-full max-w-sm`}>
-        <p className={eyebrow}>D&apos;Gust Açaí</p>
-        <h1 className="font-display mt-1 text-3xl font-semibold text-cream-50">Painel de pedidos</h1>
-        <div className="mt-6 space-y-3">
-          <label className="sr-only" htmlFor="admin-email">
-            E-mail
-          </label>
-          <input id="admin-email" type="email" required autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="E-mail" className={input} />
-          <label className="sr-only" htmlFor="admin-password">
-            Senha
-          </label>
-          <input id="admin-password" type="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Senha" className={input} />
-        </div>
-        {error && (
-          <p role="alert" className="mt-3 text-sm text-red-300">
-            {error}
-          </p>
-        )}
-        <button type="submit" disabled={loading} className={`${btnPrimary} mt-5 w-full !py-3 !text-sm`}>
-          {loading ? "Entrando…" : "Entrar"}
-        </button>
-      </form>
-    </div>
-  );
+// Só entra no painel quem é o responsável ou foi autorizado por ele. As outras pessoas
+// (conta nova, e-mail por confirmar, aguardando, negada) veem uma tela de espera.
+function AccessGate({ user }: { user: User }) {
+  const { state, refresh } = useAccess(user);
+  if (state === "loading") return <div className={`${screen} text-cream-100/75`}>Carregando…</div>;
+  if (state === "super" || state === "approved") return <Dashboard user={user} isSuper={state === "super"} />;
+  return <AccessWaiting user={user} state={state} refresh={refresh} />;
 }
 
-function Dashboard({ user }: { user: User }) {
+function Dashboard({ user, isSuper }: { user: User; isSuper: boolean }) {
   const [tab, setTab] = useState<Tab>("pedidos");
   const [notice, setNotice] = useState<string | null>(null);
   const [orders, setOrders] = useState<OrderRecord[] | null>(null);
@@ -102,6 +71,10 @@ function Dashboard({ user }: { user: User }) {
   const status = useMenuStatus();
   const alerts = useOrderAlerts(orders, setNotice);
   const { confirm, dialog } = useConfirm();
+  // Só o responsável vê (e carrega) a aba Acessos.
+  const access = useAccessLists(isSuper);
+  const pendingCount = access.requests.filter((r) => r.status === "pending").length;
+  const tabs = isSuper ? [...TABS, { id: "acessos" as Tab, label: pendingCount > 0 ? `Acessos (${pendingCount})` : "Acessos" }] : TABS;
 
   useEffect(() => subscribeToRecentOrders(setOrders, () => setOrdersError("Não foi possível carregar os pedidos. Confira se seu e-mail está liberado nas regras do Firestore.")), []);
 
@@ -189,7 +162,7 @@ function Dashboard({ user }: { user: User }) {
         </header>
 
         <div role="tablist" aria-label="Seções do painel" className="mt-6 flex gap-1.5 overflow-x-auto rounded-full border border-white/10 bg-night-900/80 p-1.5">
-          {TABS.map((t) => (
+          {tabs.map((t) => (
             <button
               key={t.id}
               type="button"
@@ -207,6 +180,7 @@ function Dashboard({ user }: { user: User }) {
         {tab === "cardapio" && <MenuPanel status={status} onError={setNotice} confirm={confirm} />}
         {tab === "combos" && <CombosPanel onError={setNotice} confirm={confirm} />}
         {tab === "entrega" && <ZonesPanel onError={setNotice} confirm={confirm} />}
+        {tab === "acessos" && isSuper && <AccessPanel requests={access.requests} admins={access.admins} listError={access.error} onError={setNotice} confirm={confirm} />}
       </div>
       {dialog}
     </div>
